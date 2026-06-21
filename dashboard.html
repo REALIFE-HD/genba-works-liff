@@ -55,6 +55,18 @@ body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic U
     </div>
     <div class="panel"><div class="ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>日報・AI要約</div><div class="pc" id="reports"><div class="empty">読込中…</div></div></div>
   </div>
+  <div class="panel" style="margin-top:18px">
+    <div class="ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>現場チャット
+      <select id="chatSiteSel" onchange="chatSwitch()" style="margin-left:10px;padding:6px 10px;border:1px solid var(--bd);border-radius:8px;font:inherit;font-size:13px"></select>
+    </div>
+    <div class="pc">
+      <div id="dchatBox" style="min-height:200px;max-height:360px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:6px 0"><div class="empty">現場を選んでください</div></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="dchatInput" placeholder="監督としてメッセージを送信" style="flex:1;padding:11px;border:1px solid var(--bd);border-radius:9px;font:inherit;font-size:14px" onkeydown="if(event.key==='Enter')dsend()">
+        <button class="refresh" onclick="dsend()" style="background:#06c755;color:#fff;border-color:#06c755">送信</button>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
 var BASE="https://cdrobplodkxyagzyzvpq.supabase.co/functions/v1";
@@ -126,7 +138,37 @@ async function load(){
       rp+='<div class="rep"><div class="h"><span class="nm">'+d.name+'</span><span class="si">／'+d.site+'</span><span style="margin-left:auto;color:#6b7280;font-size:12px">'+d.date+'</span></div><div class="sum">'+(d.ai_summary||d.body||'(本文なし)')+'</div>'+(ph?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+ph+'</div>':'')+'<div class="tags" style="align-items:center">'+tags+actBtn+'</div></div>';
     }
     el("reports").innerHTML=rp;
+    var sel=el("chatSiteSel");
+    if(sel.options.length===0 && j.sites && j.sites.length){ j.sites.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);}); chatSwitch(); }
   }catch(e){ el("upd").textContent="エラー: "+(e.message||e); }
+}
+var dchatSince=null, dchatTimer=null;
+function curSite(){var s=el("chatSiteSel");return s&&s.value?s.value:null;}
+function chatSwitch(){ dchatSince=null; el("dchatBox").innerHTML='<div class="empty">読込中…</div>'; dchatLoad(); if(dchatTimer)clearInterval(dchatTimer); dchatTimer=setInterval(dchatLoad,6000); }
+function escc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function dchatLoad(){
+  var site=curSite(); if(!site)return;
+  try{
+    var body={mode:'list',key:getKey(),site_id:site}; if(dchatSince)body.since=dchatSince;
+    var r=await fetch(BASE+"/genba-chat",{method:"POST",headers:{"apikey":ANON,"Authorization":"Bearer "+ANON,"x-dash-key":getKey(),"Content-Type":"application/json"},body:JSON.stringify(body)});
+    var j=await r.json(); if(!j.ok)return;
+    var box=el("dchatBox");
+    if(!dchatSince){ box.innerHTML=''; if(!j.messages.length) box.innerHTML='<div class="empty">まだメッセージはありません</div>'; }
+    if(j.messages.length){ if(box.querySelector('.empty'))box.innerHTML='';
+      j.messages.forEach(function(m){
+        var mine=(m.sender_role==='kantoku'); var t=new Date(m.created_at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}); var d=document.createElement('div');
+        if(mine){ d.style.cssText='align-self:flex-end;max-width:75%'; d.innerHTML='<div style="background:#06c755;color:#fff;padding:8px 11px;border-radius:12px 12px 2px 12px;font-size:13.5px;white-space:pre-wrap;word-break:break-word">'+escc(m.body)+'</div><div style="text-align:right;font-size:9.5px;color:#9aa4ad">'+t+'</div>'; }
+        else{ d.style.cssText='align-self:flex-start;max-width:78%'; d.innerHTML='<div style="font-size:10.5px;color:#6b7280;margin:0 0 2px 3px;font-weight:600">'+escc(m.sender_name||'職人')+'</div><div style="background:#fff;border:1px solid var(--bd);padding:8px 11px;border-radius:2px 12px 12px 12px;font-size:13.5px;white-space:pre-wrap;word-break:break-word">'+escc(m.body)+'</div><div style="font-size:9.5px;color:#9aa4ad;margin-left:3px">'+t+'</div>'; }
+        box.appendChild(d);
+      });
+      dchatSince=j.messages[j.messages.length-1].created_at; box.scrollTop=box.scrollHeight;
+    }
+  }catch(e){}
+}
+async function dsend(){
+  var site=curSite(); if(!site){alert("現場を選んでください");return;}
+  var inp=el("dchatInput"); var v=inp.value.trim(); if(!v)return; inp.value='';
+  try{ await fetch(BASE+"/genba-chat",{method:"POST",headers:{"apikey":ANON,"Authorization":"Bearer "+ANON,"x-dash-key":getKey(),"Content-Type":"application/json"},body:JSON.stringify({mode:'send',key:getKey(),site_id:site,body:v,sender_name:'監督'})}); dchatLoad(); }catch(e){ inp.value=v; }
 }
 load();
 setInterval(load, 30000);

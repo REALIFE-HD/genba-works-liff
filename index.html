@@ -124,6 +124,16 @@ svg{display:block}
       <div class="status" id="repStatus" style="margin-top:14px"><span class="dot"></span><span class="msg" id="repMsg">写真と作業内容を入力して提出してください。</span></div>
       <div class="foot">提出後は監督が内容を確認します</div>
     </div>
+
+    <div class="view" id="v-chat">
+      <div class="sec">現場チャット</div>
+      <div id="chatSite" style="margin:0 4px 10px;color:var(--sub);font-size:12px;font-weight:600">…</div>
+      <div id="chatBox" style="background:#fff;border:1px solid var(--bd);border-radius:16px;padding:12px;min-height:280px;max-height:54vh;overflow:auto;display:flex;flex-direction:column;gap:9px"><div class="spin">読込中…</div></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="chatInput" placeholder="メッセージを入力" style="flex:1;padding:13px;border:1px solid var(--bd);border-radius:12px;font:inherit;font-size:15px" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn btn-in" style="width:auto;padding:13px 18px;flex-direction:row" onclick="sendChat()">送信</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -151,6 +161,7 @@ svg{display:block}
 <div class="nav">
   <button class="on" id="nav-punch" onclick="go('punch')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>打刻</button>
   <button id="nav-report" onclick="go('report')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>日報</button>
+  <button id="nav-chat" onclick="go('chat')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>チャット</button>
   <button id="nav-hist" onclick="go('hist')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V11M10 19V5M16 19v-6M3 21h18"/></svg>履歴</button>
 </div>
 
@@ -168,7 +179,7 @@ function setStatus(m,k){var s=document.getElementById('status');s.className='sta
 function showUid(u){var el=document.getElementById('uid');el.style.display='block';el.innerHTML='未登録のようです。下記の LINE userId を監督に伝えて登録してください：<br><b>'+u+'</b>';}
 function setButtons(on){document.getElementById('inBtn').disabled=!on;document.getElementById('outBtn').disabled=!on;document.getElementById('hint').textContent=on?'入場 / 退場 を押してください':'先にQRコードを読み取ってください';}
 function setSite(n,done){document.getElementById('siteName').textContent=n;document.getElementById('siteBox').className='site-box '+(done?'done':'pending');document.getElementById('siteIc').innerHTML=done?ICON_CHK:ICON_PIN;}
-function go(v){['punch','report','hist'].forEach(function(x){document.getElementById('v-'+x).classList.toggle('on',v===x);document.getElementById('nav-'+x).classList.toggle('on',v===x);});}
+function go(v){['punch','report','hist','chat'].forEach(function(x){document.getElementById('v-'+x).classList.toggle('on',v===x);document.getElementById('nav-'+x).classList.toggle('on',v===x);});if(v==='chat'){startChat();}else{stopChat();}}
 function fmtT(iso){if(!iso)return'–';return new Date(iso).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});}
 
 async function boot(){
@@ -235,6 +246,41 @@ async function register(){
     if(j.ok){ document.getElementById('reg').style.display='none'; setStatus('登録しました。QRを読み取って打刻できます。','ok'); loadMe(); }
     else{ regStatus('登録に失敗しました（'+(j.error||'')+'）','err'); document.getElementById('reg-btn').disabled=false; }
   }catch(e){ regStatus('通信エラー: '+(e&&e.message?e.message:e),'err'); document.getElementById('reg-btn').disabled=false; }
+}
+/* ---- 現場チャット ---- */
+var chatTimer=null, chatMine=null, chatSince=null, chatInited=false;
+function startChat(){ chatSince=null; document.getElementById('chatBox').innerHTML='<div class="spin">読込中…</div>'; loadChat(); if(chatTimer)clearInterval(chatTimer); chatTimer=setInterval(loadChat,5000); }
+function stopChat(){ if(chatTimer){clearInterval(chatTimer);chatTimer=null;} }
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function appendMsgs(box, msgs){
+  msgs.forEach(function(m){
+    var mine=(m.sender_role==='worker' && m.sender_worker_id && m.sender_worker_id===chatMine);
+    var kan=(m.sender_role==='kantoku');
+    var d=document.createElement('div');
+    var t=new Date(m.created_at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+    if(mine){ d.style.cssText='align-self:flex-end;max-width:80%'; d.innerHTML='<div style="background:#06c755;color:#fff;padding:9px 12px;border-radius:14px 14px 3px 14px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word">'+esc(m.body)+'</div><div style="text-align:right;font-size:9.5px;color:#9aa4ad;margin-top:2px">'+t+'</div>'; }
+    else{ d.style.cssText='align-self:flex-start;max-width:82%'; d.innerHTML='<div style="font-size:10.5px;color:#6b7280;margin:0 0 2px 3px;font-weight:600">'+esc(m.sender_name||(kan?'監督':'職人'))+(kan?' <span style="color:#185fa5">監督</span>':'')+'</div><div style="background:#fff;border:1px solid var(--bd);padding:9px 12px;border-radius:3px 14px 14px 14px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word">'+esc(m.body)+'</div><div style="font-size:9.5px;color:#9aa4ad;margin-top:2px;margin-left:3px">'+t+'</div>'; }
+    box.appendChild(d);
+  });
+}
+async function loadChat(){
+  if(!idToken)return;
+  try{
+    var body={mode:'list',id_token:idToken}; if(chatSince)body.since=chatSince;
+    var r=await fetch(BASE+'/genba-chat',{method:'POST',headers:H,body:JSON.stringify(body)});
+    var j=await r.json();
+    var box=document.getElementById('chatBox');
+    if(!j.ok){ if(j.error==='no_site_today'){box.innerHTML='<div class="spin">本日の現場に入場すると、その現場のチャットが使えます。</div>';document.getElementById('chatSite').textContent='';} else if(j.error==='worker_not_found'){box.innerHTML='<div class="spin">先に登録してください。</div>';} return; }
+    chatMine=j.mine; document.getElementById('chatSite').textContent='現場：'+(j.site_name||'');
+    if(!chatSince){ box.innerHTML=''; if(!j.messages.length) box.innerHTML='<div class="spin">まだメッセージはありません。</div>'; }
+    if(j.messages.length){ if(box.querySelector('.spin'))box.innerHTML=''; appendMsgs(box,j.messages); chatSince=j.messages[j.messages.length-1].created_at; box.scrollTop=box.scrollHeight; }
+  }catch(e){}
+}
+async function sendChat(){
+  var inp=document.getElementById('chatInput'); var v=inp.value.trim(); if(!v)return;
+  inp.value='';
+  try{ await fetch(BASE+'/genba-chat',{method:'POST',headers:H,body:JSON.stringify({mode:'send',id_token:idToken,body:v})}); loadChat(); }
+  catch(e){ inp.value=v; }
 }
 async function scanQR(){
   try{
