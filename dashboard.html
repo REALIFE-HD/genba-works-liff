@@ -40,7 +40,7 @@ body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic U
 </style>
 </head>
 <body>
-<div class="top"><div class="lg">現</div><b>現場WORKS 監督ダッシュボード</b><span class="upd" id="upd">…</span><button class="refresh" onclick="load()">↻ 更新</button></div>
+<div class="top"><div class="lg">現</div><b>現場WORKS 監督ダッシュボード</b><span class="upd" id="upd">…</span><button class="refresh" onclick="exportCsv()">⤓ 出面CSV</button><button class="refresh" onclick="load()">↻ 更新</button></div>
 <div class="wrap">
   <div class="cards">
     <div class="stat"><div class="l">在場中の職人</div><div class="n"><span id="s-present">–</span><small>名</small></div></div>
@@ -51,6 +51,7 @@ body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic U
   <div class="grid">
     <div class="panel"><div class="ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M4 21V5l8-3v19"/><path d="M12 8l8 3v10"/><path d="M4 21h17M8 7v.01M8 11v.01M8 15v.01"/></svg>在場状況</div><div class="pc" id="bysite"><div class="empty">読込中…</div></div>
       <div class="ph" style="border-top:1px solid var(--bd)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>未退場</div><div class="pc" id="unclosed"><div class="empty">–</div></div>
+      <div class="ph" style="border-top:1px solid var(--bd)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>手動打刻の承認</div><div class="pc" id="pending"><div class="empty">–</div></div>
     </div>
     <div class="panel"><div class="ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>日報・AI要約</div><div class="pc" id="reports"><div class="empty">読込中…</div></div></div>
   </div>
@@ -62,6 +63,25 @@ function getKey(){ var k=localStorage.getItem("genba_dash_key"); if(!k){ k=promp
 function av(n){ return (n||"?").trim().charAt(0); }
 function fmtT(iso){ if(!iso) return "–"; return new Date(iso).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"}); }
 function el(id){ return document.getElementById(id); }
+async function exportCsv(){
+  var key=getKey(); if(!key) return;
+  var ym=new Date().toISOString().slice(0,7);
+  try{
+    var r=await fetch(BASE+"/genba-export?ym="+ym,{headers:{"apikey":ANON,"Authorization":"Bearer "+ANON,"x-dash-key":key}});
+    if(!r.ok){ alert("CSV取得に失敗しました"); return; }
+    var blob=await r.blob();
+    var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="genba-demen-"+ym+".csv";a.click();URL.revokeObjectURL(a.href);
+  }catch(e){ alert("エラー: "+(e.message||e)); }
+}
+async function act(params){
+  var key=getKey(); if(!key) return;
+  try{
+    var r=await fetch(BASE+"/genba-action",{method:"POST",headers:{"apikey":ANON,"Authorization":"Bearer "+ANON,"x-dash-key":key,"Content-Type":"application/json"},body:JSON.stringify(params)});
+    var j=await r.json();
+    if(!j.ok){ alert("失敗: "+(j.error||"")); return; }
+    load();
+  }catch(e){ alert("エラー: "+(e.message||e)); }
+}
 async function load(){
   var key=getKey(); if(!key) return;
   try{
@@ -85,16 +105,25 @@ async function load(){
     var u="";
     if(!j.unclosed.length) u='<div class="empty">未退場はありません</div>';
     for(var i=0;i<j.unclosed.length;i++){var x=j.unclosed[i];
-      u+='<div class="wkr"><span class="av">'+av(x.name)+'</span>'+x.name+'<span style="color:#6b7280;font-size:12px">'+x.site+'</span><span class="tm" style="color:#e8453c">'+x.work_date+' '+fmtT(x.first_in)+'〜 未退場</span><button class="mini" style="margin-left:10px" onclick="alert(\'退場補正は次段で実装\')">退場補正</button></div>';
+      u+='<div class="wkr"><span class="av">'+av(x.name)+'</span>'+x.name+'<span style="color:#6b7280;font-size:12px">'+x.site+'</span><span class="tm" style="color:#e8453c">'+x.work_date+' '+fmtT(x.first_in)+'〜 未退場</span><button class="mini" style="margin-left:10px" onclick=\'act({action:"fix_out",worker_id:"'+x.worker_id+'",site_id:"'+x.site_id+'",work_date:"'+x.work_date+'"})\'>退場補正</button></div>';
     }
     el("unclosed").innerHTML=u;
+    // pending manual
+    var pm="";
+    var P=j.pending_manual||[];
+    if(!P.length) pm='<div class="empty">承認待ちはありません</div>';
+    for(var i=0;i<P.length;i++){var m=P[i];
+      pm+='<div class="wkr"><span class="av">'+av(m.name)+'</span>'+m.name+'<span style="color:#6b7280;font-size:12px">'+m.site+'・'+(m.type==='in'?'入場':'退場')+'</span><span class="tm">'+fmtT(m.occurred_at)+'</span><button class="mini" style="margin-left:10px;background:#06c755" onclick=\'act({action:"approve_manual",id:"'+m.id+'"})\'>承認</button></div>';
+    }
+    el("pending").innerHTML=pm;
     // reports
     var rp="";
     if(!j.reports.length) rp='<div class="empty">日報はまだありません</div>';
     for(var i=0;i<j.reports.length;i++){var d=j.reports[i];
       var tags=(d.ai_tags||[]).map(function(t){var c=(t==='安全'?'warn':(t==='不具合'||t==='資材不足'||t==='追加要望'?'amber':''));return '<span class="tag '+c+'">'+t+'</span>';}).join('');
       var ph=(d.photos||[]).map(function(u){return '<img src="'+u+'" style="width:62px;height:62px;object-fit:cover;border-radius:8px;border:1px solid var(--bd)">';}).join('');
-      rp+='<div class="rep"><div class="h"><span class="nm">'+d.name+'</span><span class="si">／'+d.site+'</span><span style="margin-left:auto;color:#6b7280;font-size:12px">'+d.date+'</span></div><div class="sum">'+(d.ai_summary||d.body||'(本文なし)')+'</div>'+(ph?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+ph+'</div>':'')+'<div class="tags">'+tags+'</div></div>';
+      var actBtn=(d.status==='approved')?'<span style="margin-left:auto;font-size:11.5px;font-weight:800;color:var(--ok)">✓ 承認済</span>':'<button class="mini" style="margin-left:auto;background:#06c755" onclick=\'act({action:"approve_report",worker_id:"'+d.worker_id+'",site_id:"'+d.site_id+'",report_date:"'+d.date+'"})\'>承認</button>';
+      rp+='<div class="rep"><div class="h"><span class="nm">'+d.name+'</span><span class="si">／'+d.site+'</span><span style="margin-left:auto;color:#6b7280;font-size:12px">'+d.date+'</span></div><div class="sum">'+(d.ai_summary||d.body||'(本文なし)')+'</div>'+(ph?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+ph+'</div>':'')+'<div class="tags" style="align-items:center">'+tags+actBtn+'</div></div>';
     }
     el("reports").innerHTML=rp;
   }catch(e){ el("upd").textContent="エラー: "+(e.message||e); }
