@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>現場WORKS 掲示用QR</title>
+<script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,sans-serif;background:#fff;color:#11181c;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center}
+.brand{font-size:14px;font-weight:800;color:#06c755;letter-spacing:.08em;margin-bottom:6px}
+.site{font-size:26px;font-weight:800;margin:4px 0 4px}
+.sub{font-size:13px;color:#6b7280;margin-bottom:22px}
+#qr{padding:18px;border:2px solid #e4e7eb;border-radius:18px;display:inline-block}
+#qr img,#qr canvas{display:block}
+.steps{margin-top:24px;font-size:14px;color:#374151;line-height:1.9;text-align:left;max-width:340px}
+.steps b{color:#06c755}
+.tok{margin-top:16px;font-size:11px;color:#9aa4ad}
+@media print{.noprint{display:none}}
+</style>
+</head>
+<body>
+<div class="brand">現場WORKS</div>
+<div class="site" id="siteName">現場</div>
+<div class="sub">入退場はこのQRをスキャン</div>
+<div id="qr"></div>
+<div class="steps">
+  ① LINEで「現場WORKS」を開く<br>
+  ② 「<b>QRコードを読み取る</b>」を押す<br>
+  ③ このQRをスキャン<br>
+  ④ 「<b>入場</b>」または「<b>退場</b>」を押す
+</div>
+<div class="tok" id="tok"></div>
+<script>
+function qp(k){ return new URLSearchParams(location.search).get(k); }
+var token = qp("token") || "AOBADAI-2026-TOKEN";
+var name = qp("name") || "パークホームズ青葉台 新築";
+document.getElementById("siteName").textContent = name;
+document.getElementById("tok").textContent = "token: " + token;
+new QRCode(document.getElementById("qr"), { text: token, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.M });
+</script>
+</body>
+</html>
