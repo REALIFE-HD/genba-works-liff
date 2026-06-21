@@ -85,8 +85,12 @@ async function load(){
     var s="";if(!j.sites.length)s='<div class="empty">現場がありません</div>';
     j.sites.forEach(function(x){
       var qurl=PAGES+"/site.html?token="+encodeURIComponent(x.qr_token||'')+"&name="+encodeURIComponent(x.name||'');
-      s+='<div class="row"><div style="flex:1"><div class="nm">'+x.name+'</div><div class="muted">QR: '+(x.qr_token||'-')+(x.lat?(' / GPS '+x.lat+','+x.lng):'')+' / 半径'+(x.radius_m||150)+'m</div></div>'
-        +'<a class="qrlink" href="'+qurl+'" target="_blank">掲示用QRを開く →</a></div>';
+      var en=!!x.client_report_enabled;
+      s+='<div class="row"><div style="flex:1;min-width:180px"><div class="nm">'+x.name+'</div><div class="muted">QR: '+(x.qr_token||'-')+(x.lat?(' / GPS '+x.lat+','+x.lng):'')+' / 半径'+(x.radius_m||150)+'m</div>'
+        +'<div class="muted" style="margin-top:3px">依頼主連絡先: '+(x.client_contact?x.client_contact:'未設定')+' <a href="#" onclick=\'setContact("'+x.id+'",this);return false\' style="color:var(--line)">編集</a></div></div>'
+        +'<span class="tagpill '+(en?'on':'off')+'">依頼主報告 '+(en?'ON':'OFF')+'</span>'
+        +'<button class="btn gh" onclick=\'toggleSiteReport("'+x.id+'",'+(!en)+')\'>'+(en?'OFFにする':'ONにする')+'</button>'
+        +'<a class="qrlink" href="'+qurl+'" target="_blank">掲示用QR →</a></div>';
     });
     el("siteList").innerHTML=s;
   }catch(e){alert("エラー: "+(e.message||e));}
@@ -101,6 +105,8 @@ async function createSite(){
   if(!isNaN(lat))body.lat=lat;if(!isNaN(lng))body.lng=lng;if(!isNaN(rad))body.radius_m=rad;
   var j=await post(body);if(j){alert("追加しました：QRトークン "+j.site.qr_token);load();}
 }
+async function toggleSiteReport(id,enable){ if(await post({action:"update_site",id:id,client_report_enabled:enable}))load(); }
+async function setContact(id){ var v=prompt("依頼主の連絡先（メール/電話/LINE等のメモ）"); if(v===null)return; if(await post({action:"update_site",id:id,client_contact:v.trim()}))load(); }
 load();
 </script>
 </body>
