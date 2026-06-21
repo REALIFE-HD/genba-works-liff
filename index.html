@@ -6,67 +6,62 @@
 <title>現場WORKS 打刻</title>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
-:root{
-  --line:#06c755;--line-d:#05a847;--ink:#14181b;--sub:#6b7280;--bg:#f2f5f7;--card:#fff;--bd:#e6eaee;
-  --warn:#e8453c;--warn-d:#cf3a31;--ok:#0a8f4f;--okbg:#e7f8ef;
-}
+:root{--line:#06c755;--line-d:#05a847;--ink:#14181b;--sub:#6b7280;--bg:#f2f5f7;--card:#fff;--bd:#e6eaee;--warn:#e8453c;--warn-d:#cf3a31;--ok:#0a8f4f;--okbg:#e7f8ef;--amber:#b45309}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,sans-serif;
-  background:var(--bg);color:var(--ink);min-height:100vh}
-.wrap{max-width:460px;margin:0 auto;padding-bottom:28px}
-
-/* header */
-.hdr{background:linear-gradient(135deg,#06c755,#04a648);color:#fff;padding:22px 20px 26px;
-  border-radius:0 0 26px 26px;box-shadow:0 8px 22px rgba(6,199,85,.25)}
+body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:460px;margin:0 auto;padding-bottom:84px}
+.hdr{background:linear-gradient(135deg,#06c755,#04a648);color:#fff;padding:20px 18px 22px;border-radius:0 0 24px 24px;box-shadow:0 8px 22px rgba(6,199,85,.25)}
 .hdr .top{display:flex;align-items:center;gap:10px}
-.logo{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:18px}
-.brand{font-weight:800;font-size:17px;letter-spacing:.02em}
-.brand small{display:block;font-weight:600;font-size:10.5px;opacity:.85;letter-spacing:.14em;margin-top:1px}
-.me{margin-left:auto;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);padding:6px 12px;border-radius:99px;font-size:13px;font-weight:700}
-.me .av{width:22px;height:22px;border-radius:50%;background:#fff;color:var(--line-d);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
-.date{margin-top:16px;font-size:13px;opacity:.92;font-weight:600}
-
-/* content */
+.logo{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:17px}
+.brand{font-weight:800;font-size:16px;line-height:1.1}.brand small{display:block;font-weight:600;font-size:9.5px;opacity:.85;letter-spacing:.14em;margin-top:1px}
+.me{margin-left:auto;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);padding:5px 11px;border-radius:99px;font-size:13px;font-weight:700}
+.me .av{width:21px;height:21px;border-radius:50%;background:#fff;color:var(--line-d);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+.statuschip{margin-top:15px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.18);padding:8px 14px;border-radius:99px;font-size:13.5px;font-weight:700}
+.statuschip .pip{width:9px;height:9px;border-radius:50%;background:#fff}
 .body{padding:18px 16px 0}
+.view{display:none}.view.on{display:block}
 .sec{font-size:12px;font-weight:800;color:var(--sub);letter-spacing:.05em;margin:2px 4px 10px;display:flex;align-items:center;gap:7px}
 .sec .n{width:20px;height:20px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:18px;margin-bottom:18px;box-shadow:0 2px 10px rgba(20,24,27,.04)}
-
-/* site status */
 .site-box{display:flex;align-items:center;gap:14px}
-.site-ic{width:52px;height:52px;border-radius:15px;background:#f0f3f5;display:flex;align-items:center;justify-content:center;font-size:26px;flex:0 0 auto;transition:.2s}
+.site-ic{width:52px;height:52px;border-radius:15px;background:#f0f3f5;display:flex;align-items:center;justify-content:center;font-size:26px;flex:0 0 auto}
 .site-box.done .site-ic{background:var(--okbg)}
 .site-meta .lbl{font-size:12px;color:var(--sub);font-weight:600}
 .site-meta .nm{font-size:18px;font-weight:800;margin-top:2px;line-height:1.25}
 .site-box.pending .nm{color:var(--sub);font-weight:700;font-size:15px}
-
-/* buttons */
-.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:16px;
-  padding:20px;font-size:18px;font-weight:800;cursor:pointer;transition:transform .08s,filter .15s,box-shadow .15s}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:16px;padding:20px;font-size:18px;font-weight:800;cursor:pointer;transition:transform .08s,filter .15s}
 .btn:active{transform:scale(.985)}
-.btn-scan{background:var(--ink);color:#fff;box-shadow:0 6px 16px rgba(20,24,27,.18)}
-.btn-scan .qr{font-size:22px}
+.btn-scan{background:var(--ink);color:#fff;box-shadow:0 6px 16px rgba(20,24,27,.18)}.btn-scan .qr{font-size:22px}
 .punch-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .btn-in{background:var(--line);color:#fff;flex-direction:column;gap:4px;padding:22px 10px;box-shadow:0 6px 16px rgba(6,199,85,.3)}
 .btn-out{background:var(--warn);color:#fff;flex-direction:column;gap:4px;padding:22px 10px;box-shadow:0 6px 16px rgba(232,69,60,.28)}
-.btn-in .ic,.btn-out .ic{font-size:26px;line-height:1}
-.btn-in .t,.btn-out .t{font-size:17px}
-.btn:disabled{background:#e9edf0;color:#aab2b9;box-shadow:none;cursor:default}
+.btn-in .ic,.btn-out .ic{font-size:26px;line-height:1}.btn-in .t,.btn-out .t{font-size:17px}
+.btn:disabled{background:#e9edf0;color:#aab2b9;box-shadow:none}
 .hint{font-size:11.5px;color:var(--sub);text-align:center;margin-top:10px}
-
-/* status */
 .status{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid var(--bd);border-radius:16px;padding:14px 16px;font-size:13.5px;line-height:1.6;box-shadow:0 2px 10px rgba(20,24,27,.04)}
 .status .dot{width:9px;height:9px;border-radius:50%;background:var(--sub);margin-top:5px;flex:0 0 auto}
-.status.ok .dot{background:var(--ok)}
-.status.err .dot{background:var(--warn)}
-.status.busy .dot{background:#f59e0b;animation:pulse 1s infinite}
+.status.ok .dot{background:var(--ok)}.status.err .dot{background:var(--warn)}.status.busy .dot{background:#f59e0b;animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.status .msg{white-space:pre-wrap;word-break:break-all;font-weight:600}
-.status.err .msg{color:var(--warn-d)}
-.status.ok .msg{color:var(--ok)}
+.status .msg{white-space:pre-wrap;word-break:break-all;font-weight:600}.status.err .msg{color:var(--warn-d)}.status.ok .msg{color:var(--ok)}
 .uid{font-size:12px;background:#fff8e8;border:1px solid #ffe1a3;border-radius:14px;padding:12px 14px;margin-top:12px;word-break:break-all;display:none;line-height:1.6}
-.uid b{font-size:13px}
 .foot{text-align:center;font-size:11px;color:#9aa4ad;margin-top:18px}
+/* history */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px 8px;text-align:center;box-shadow:0 2px 10px rgba(20,24,27,.04)}
+.stat .v{font-size:24px;font-weight:800}.stat .l{font-size:11px;color:var(--sub);font-weight:600;margin-top:3px}
+.day{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #eef1f3}
+.day:last-child{border:0}
+.day .d{width:50px;font-weight:800;font-size:14px}
+.day .pip{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.day .tm{font-variant-numeric:tabular-nums;font-size:13px;color:var(--sub)}
+.day .rep{margin-left:auto;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:99px}
+.rep-y{background:var(--okbg);color:var(--ok)}.rep-n{background:#fdecea;color:var(--warn)}
+/* nav */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;background:#fff;border-top:1px solid var(--bd);display:flex;height:66px;z-index:10}
+.nav button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:var(--sub);cursor:pointer;font-weight:700}
+.nav button .i{font-size:21px;line-height:1}
+.nav button.on{color:var(--line)}
+.spin{text-align:center;color:var(--sub);font-size:13px;padding:24px}
 </style>
 </head>
 <body>
@@ -77,115 +72,134 @@ body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic U
       <div class="brand">現場WORKS<small>GENBA WORKS</small></div>
       <div class="me"><span class="av" id="av">…</span><span id="who">読込中</span></div>
     </div>
-    <div class="date" id="date">　</div>
+    <div class="statuschip" id="chip"><span class="pip"></span><span id="chipText">状態を確認中…</span></div>
   </div>
 
   <div class="body">
-    <div class="sec"><span class="n">1</span>現場のQRコードを読み取る</div>
-    <div class="card">
-      <div class="site-box pending" id="siteBox">
-        <div class="site-ic" id="siteIc">📍</div>
-        <div class="site-meta">
-          <div class="lbl">現場</div>
-          <div class="nm" id="siteName">QR未読取</div>
+    <!-- 打刻 -->
+    <div class="view on" id="v-punch">
+      <div class="sec"><span class="n">1</span>現場のQRコードを読み取る</div>
+      <div class="card">
+        <div class="site-box pending" id="siteBox">
+          <div class="site-ic" id="siteIc">📍</div>
+          <div class="site-meta"><div class="lbl">現場</div><div class="nm" id="siteName">QR未読取</div></div>
         </div>
+        <div style="height:14px"></div>
+        <button class="btn btn-scan" onclick="scanQR()"><span class="qr">▦</span> QRコードを読み取る</button>
       </div>
-      <div style="height:14px"></div>
-      <button class="btn btn-scan" onclick="scanQR()"><span class="qr">▦</span> QRコードを読み取る</button>
+      <div class="sec"><span class="n">2</span>打刻する</div>
+      <div class="card">
+        <div class="punch-row">
+          <button class="btn btn-in" id="inBtn" onclick="punch('in')" disabled><span class="ic">⬇</span><span class="t">入場</span></button>
+          <button class="btn btn-out" id="outBtn" onclick="punch('out')" disabled><span class="ic">⬆</span><span class="t">退場</span></button>
+        </div>
+        <div class="hint" id="hint">先にQRコードを読み取ってください</div>
+      </div>
+      <div class="status" id="status"><span class="dot"></span><span class="msg" id="msg">初期化中…</span></div>
+      <div class="uid" id="uid"></div>
+      <div class="foot">公式LINEミニアプリ ・ 打刻はSupabaseへ記録</div>
     </div>
 
-    <div class="sec"><span class="n">2</span>打刻する</div>
-    <div class="card">
-      <div class="punch-row">
-        <button class="btn btn-in" id="inBtn" onclick="punch('in')" disabled><span class="ic">⬇</span><span class="t">入場</span></button>
-        <button class="btn btn-out" id="outBtn" onclick="punch('out')" disabled><span class="ic">⬆</span><span class="t">退場</span></button>
+    <!-- 履歴 -->
+    <div class="view" id="v-hist">
+      <div class="sec">今月の出面</div>
+      <div class="stats">
+        <div class="stat"><div class="v" id="m-ninku">–</div><div class="l">人工</div></div>
+        <div class="stat"><div class="v" id="m-hours">–</div><div class="l">稼働h</div></div>
+        <div class="stat"><div class="v" id="m-days">–</div><div class="l">出勤日</div></div>
       </div>
-      <div class="hint" id="hint">先にQRコードを読み取ってください</div>
+      <div class="sec">日別</div>
+      <div class="card" id="histCard"><div class="spin">読込中…</div></div>
     </div>
-
-    <div class="status" id="status"><span class="dot"></span><span class="msg" id="msg">初期化中…</span></div>
-    <div class="uid" id="uid"></div>
-
-    <div class="foot">公式LINEミニアプリ ・ 打刻はSupabaseへ記録</div>
   </div>
 </div>
 
-<script>
-var LIFF_ID = "2010459645-nZrNO9J0";
-var PUNCH_URL = "https://cdrobplodkxyagzyzvpq.supabase.co/functions/v1/punch";
-var ANON_KEY = "sb_publishable_cEnH7Mug8B7O8JtgSIauMw_MjlVxhW5";
-var idToken = null, qr = null;
+<div class="nav">
+  <button class="on" id="nav-punch" onclick="go('punch')"><span class="i">📍</span>打刻</button>
+  <button id="nav-hist" onclick="go('hist')"><span class="i">📊</span>履歴</button>
+</div>
 
-function setStatus(msg, kind){ // kind: '', 'ok', 'err', 'busy'
-  var s=document.getElementById('status');
-  s.className='status'+(kind?(' '+kind):'');
-  document.getElementById('msg').textContent=msg;
-}
-function showUid(u){ var el=document.getElementById('uid'); el.style.display='block'; el.innerHTML='未登録のようです。下記の LINE userId を監督に伝えて登録してください：<br><b>'+u+'</b>'; }
-function setButtons(on){ document.getElementById('inBtn').disabled=!on; document.getElementById('outBtn').disabled=!on; document.getElementById('hint').textContent = on ? '入場 / 退場 を押してください' : '先にQRコードを読み取ってください'; }
-function setSite(name, done){
-  document.getElementById('siteName').textContent = name;
-  var box=document.getElementById('siteBox');
-  box.className = 'site-box ' + (done?'done':'pending');
-  document.getElementById('siteIc').textContent = done?'✅':'📍';
-}
+<script>
+var LIFF_ID="2010459645-nZrNO9J0";
+var BASE="https://cdrobplodkxyagzyzvpq.supabase.co/functions/v1";
+var ANON="sb_publishable_cEnH7Mug8B7O8JtgSIauMw_MjlVxhW5";
+var idToken=null, qr=null;
+var H={"content-type":"application/json","apikey":ANON,"Authorization":"Bearer "+ANON};
+
+function setStatus(m,k){var s=document.getElementById('status');s.className='status'+(k?' '+k:'');document.getElementById('msg').textContent=m;}
+function showUid(u){var el=document.getElementById('uid');el.style.display='block';el.innerHTML='未登録のようです。下記の LINE userId を監督に伝えて登録してください：<br><b>'+u+'</b>';}
+function setButtons(on){document.getElementById('inBtn').disabled=!on;document.getElementById('outBtn').disabled=!on;document.getElementById('hint').textContent=on?'入場 / 退場 を押してください':'先にQRコードを読み取ってください';}
+function setSite(n,done){document.getElementById('siteName').textContent=n;document.getElementById('siteBox').className='site-box '+(done?'done':'pending');document.getElementById('siteIc').textContent=done?'✅':'📍';}
+function go(v){document.getElementById('v-punch').classList.toggle('on',v==='punch');document.getElementById('v-hist').classList.toggle('on',v==='hist');document.getElementById('nav-punch').classList.toggle('on',v==='punch');document.getElementById('nav-hist').classList.toggle('on',v==='hist');}
+function fmtT(iso){if(!iso)return'–';return new Date(iso).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});}
 
 async function boot(){
   try{
-    var d=new Date();
-    document.getElementById('date').textContent = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+'日月火水木金土'[d.getDay()]+'）';
-    await liff.init({ liffId: LIFF_ID });
-    if(!liff.isLoggedIn()){ liff.login(); return; }
-    var p = await liff.getProfile();
-    document.getElementById('who').textContent = p.displayName;
-    document.getElementById('av').textContent = (p.displayName||'？').trim().charAt(0);
-    idToken = liff.getIDToken();
-    setStatus("現場のQRコードを読み取ってください。", "");
-  }catch(e){ setStatus("LIFF初期化エラー: " + (e && e.message ? e.message : e), "err"); }
+    await liff.init({liffId:LIFF_ID});
+    if(!liff.isLoggedIn()){liff.login();return;}
+    var p=await liff.getProfile();
+    document.getElementById('who').textContent=p.displayName;
+    document.getElementById('av').textContent=(p.displayName||'？').trim().charAt(0);
+    idToken=liff.getIDToken();
+    setStatus("現場のQRコードを読み取ってください。","");
+    loadMe();
+  }catch(e){setStatus("LIFF初期化エラー: "+(e&&e.message?e.message:e),"err");}
+}
+
+async function loadMe(){
+  try{
+    var r=await fetch(BASE+"/genba-me",{method:"POST",headers:H,body:JSON.stringify({id_token:idToken})});
+    var j=await r.json();
+    if(!j.ok){ if(j.error==='worker_not_found'&&j.line_user_id) showUid(j.line_user_id); setChip('未登録'); return; }
+    var t=j.today;
+    if(t.status==='in') setChip('● 在場中　'+Math.floor(t.elapsed_min/60)+'時間'+(t.elapsed_min%60)+'分');
+    else if(t.status==='out') setChip('退場済　'+fmtT(t.first_in)+' → '+fmtT(t.last_out));
+    else setChip('本日まだ打刻なし');
+    document.getElementById('m-ninku').textContent=j.month.ninku;
+    document.getElementById('m-hours').textContent=j.month.hours;
+    document.getElementById('m-days').textContent=j.month.days;
+    renderHist(j.history);
+  }catch(e){ setChip('状態取得エラー'); }
+}
+function setChip(txt){document.getElementById('chipText').textContent=txt;}
+function renderHist(h){
+  var el=document.getElementById('histCard');
+  if(!h||!h.length){el.innerHTML='<div class="spin">まだ記録がありません</div>';return;}
+  var html='';
+  for(var i=0;i<h.length;i++){var r=h[i];
+    var color=r.last_out?'#0a8f4f':(r.first_in?'#06c755':'#cbd2d8');
+    var dd=r.date.slice(8)+'日';
+    var tm=fmtT(r.first_in)+' → '+(r.last_out?fmtT(r.last_out):'在場中');
+    html+='<div class="day"><span class="d">'+dd+'</span><span class="pip" style="background:'+color+'"></span><span class="tm">'+tm+'</span><span class="rep '+(r.has_report?'rep-y':'rep-n')+'">'+(r.has_report?'日報済':'日報未')+'</span></div>';
+  }
+  el.innerHTML=html;
 }
 
 async function scanQR(){
   try{
-    if(!liff.scanCodeV2){ setStatus("QRが使えません。ミニアプリ設定の「Scan QR」をONにしてください。", "err"); return; }
-    setStatus("QRをスキャン中…", "busy");
-    var r = await liff.scanCodeV2();
-    qr = r.value;
-    setSite("読取済み（打刻できます）", false);
-    setButtons(true);
-    setStatus("QR読取OK。入場または退場を押してください。", "ok");
-  }catch(e){ setStatus("QR読取に失敗しました。もう一度お試しください。", "err"); }
+    if(!liff.scanCodeV2){setStatus("QRが使えません。ミニアプリ設定の「Scan QR」をONにしてください。","err");return;}
+    setStatus("QRをスキャン中…","busy");
+    var r=await liff.scanCodeV2();qr=r.value;
+    setSite("読取済み（打刻できます）",false);setButtons(true);
+    setStatus("QR読取OK。入場または退場を押してください。","ok");
+  }catch(e){setStatus("QR読取に失敗しました。もう一度お試しください。","err");}
 }
-
 async function punch(type){
-  if(!idToken){ setStatus("LINEログインが必要です。", "err"); return; }
-  if(!qr){ setStatus("先に現場のQRコードを読み取ってください。", "err"); return; }
-  setButtons(false);
-  setStatus((type==='in'?'入場':'退場') + "を送信中…", "busy");
+  if(!idToken){setStatus("LINEログインが必要です。","err");return;}
+  if(!qr){setStatus("先に現場のQRコードを読み取ってください。","err");return;}
+  setButtons(false);setStatus((type==='in'?'入場':'退場')+"を送信中…","busy");
   try{
-    var res = await fetch(PUNCH_URL, {
-      method: "POST",
-      headers: { "Content-Type":"application/json", "apikey":ANON_KEY, "Authorization":"Bearer "+ANON_KEY },
-      body: JSON.stringify({ id_token: idToken, type: type, method: "qr", qr_token: qr })
-    });
-    var j = await res.json();
+    var res=await fetch(BASE+"/punch",{method:"POST",headers:H,body:JSON.stringify({id_token:idToken,type:type,method:"qr",qr_token:qr})});
+    var j=await res.json();
     if(j.ok){
-      setSite(j.site || '現場', true);
-      var t = new Date(j.attendance.occurred_at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
-      setStatus("✅ " + (type==='in'?'入場':'退場') + "を記録しました（" + t + "）\n" + (j.site||''), "ok");
-      setButtons(true);
-    } else if(j.error === 'worker_not_found'){
-      setStatus("未登録の職人です。監督に登録を依頼してください。", "err");
-      if(j.line_user_id) showUid(j.line_user_id);
-    } else if(j.error === 'qr_invalid' || j.error === 'no_qr'){
-      setStatus("このQRコードは現場に登録されていません。掲示のQRを読み取ってください。", "err");
-      setButtons(true);
-    } else {
-      setStatus("打刻に失敗しました（" + (j.error || 'unknown') + "）", "err");
-      setButtons(true);
-    }
-  }catch(e){ setStatus("通信エラー: " + (e && e.message ? e.message : e), "err"); setButtons(true); }
+      setSite(j.site||'現場',true);
+      setStatus("✅ "+(j.site||'')+" "+(type==='in'?'入場':'退場')+"を記録しました（"+fmtT(j.attendance.occurred_at)+"）","ok");
+      setButtons(true);loadMe();
+    }else if(j.error==='worker_not_found'){setStatus("未登録の職人です。監督に登録を依頼してください。","err");if(j.line_user_id)showUid(j.line_user_id);}
+    else if(j.error==='qr_invalid'||j.error==='no_qr'){setStatus("このQRコードは現場に登録されていません。","err");setButtons(true);}
+    else{setStatus("打刻に失敗しました（"+(j.error||'unknown')+"）","err");setButtons(true);}
+  }catch(e){setStatus("通信エラー: "+(e&&e.message?e.message:e),"err");setButtons(true);}
 }
-
 boot();
 </script>
 </body>
