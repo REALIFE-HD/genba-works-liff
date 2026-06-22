@@ -197,6 +197,8 @@ var LIFF_ID="2010459645-nZrNO9J0";
 var BASE="https://cdrobplodkxyagzyzvpq.supabase.co/functions/v1";
 var ANON="sb_publishable_cEnH7Mug8B7O8JtgSIauMw_MjlVxhW5";
 var idToken=null, qr=null, myName='';
+var pendingPunch=null; // {type,key} 同一打刻の再送で同じidempotency_keyを使い二重打刻を防止
+function newKey(){ return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+'-'+Math.random().toString(16).slice(2)); }
 var TRADES=["コーティング","塗装","内装","足場","電気","設備","防水","左官","解体","清掃","その他"];
 var H={"content-type":"application/json","apikey":ANON,"Authorization":"Bearer "+ANON};
 var ICON_PIN='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>';
@@ -370,17 +372,19 @@ async function punch(type){
   if(!idToken){setStatus("LINEログインが必要です。","err");return;}
   if(!qr){setStatus("先に現場のQRコードを読み取ってください。","err");return;}
   setButtons(false);setStatus((type==='in'?'入場':'退場')+"を送信中…","busy");
+  if(!pendingPunch||pendingPunch.type!==type){ pendingPunch={type:type,key:newKey()}; }
   try{
-    var res=await fetch(BASE+"/punch",{method:"POST",headers:H,body:JSON.stringify({id_token:idToken,type:type,method:"qr",qr_token:qr})});
+    var res=await fetch(BASE+"/punch",{method:"POST",headers:H,body:JSON.stringify({id_token:idToken,type:type,method:"qr",qr_token:qr,idempotency_key:pendingPunch.key})});
     var j=await res.json();
     if(j.ok){
+      pendingPunch=null;
       setSite(j.site||'現場',true);
       setStatus((type==='in'?'入場':'退場')+"を記録しました（"+fmtT(j.attendance.occurred_at)+"）　"+(j.site||''),"ok");
       setButtons(true);loadMe();
     }else if(j.error==='worker_not_found'){setStatus("はじめての方は登録してください。","err");loadMe();}
     else if(j.error==='qr_invalid'||j.error==='no_qr'){setStatus("このQRコードは現場に登録されていません。","err");setButtons(true);}
     else{setStatus("打刻に失敗しました（"+(j.error||'unknown')+"）","err");setButtons(true);}
-  }catch(e){setStatus("通信エラー: "+(e&&e.message?e.message:e),"err");setButtons(true);}
+  }catch(e){setStatus("通信エラー: 再度ボタンを押すと同じ打刻として再送されます（"+(e&&e.message?e.message:e)+"）","err");setButtons(true);}
 }
 
 /* ---- 日報 ---- */
