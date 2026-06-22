@@ -34,6 +34,23 @@ input,select{padding:9px 10px;border:1px solid var(--bd);border-radius:9px;font:
 <body>
 <div class="top"><div class="lg">現</div><b>現場WORKS 管理</b><a href="dashboard.html">ダッシュボードへ →</a></div>
 <div class="wrap">
+  <div class="panel"><div class="ph">環境とテスト</div><div class="pc">
+    <div class="row"><div style="flex:1;min-width:160px"><div class="nm">現在の環境</div><div class="muted">dev = 通知を実送信せず dryrun ログのみ記録。prod = 実送信。</div></div>
+      <span class="tagpill" id="env-badge" style="font-size:13px">…</span>
+      <button class="btn" id="env-btn" onclick="toggleEnv()">切替</button>
+    </div>
+    <div class="row" style="border:0;padding-top:14px"><div style="width:100%">
+      <div class="nm" style="margin-bottom:6px">dryテスト実行<span class="muted" style="font-weight:600;margin-left:6px">送信せず対象件数だけ確認します</span></div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+        <button class="btn gh" onclick="dryTest('genba-detect-no-clockin',this)">未打刻検知</button>
+        <button class="btn gh" onclick="dryTest('genba-detect-unconfirmed',this)">未確認検知</button>
+        <button class="btn gh" onclick="dryTest('genba-detect-eod',this)">退場漏れ検知</button>
+        <button class="btn gh" onclick="dryTest('genba-remind-preday',this)">前日リマインド</button>
+        <button class="btn gh" onclick="dryTest('genba-notify-retry',this)">通知の再送</button>
+      </div>
+      <pre id="dry-out" style="margin:12px 0 0;padding:11px;background:#0f1418;color:#d7e2ea;border-radius:9px;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word;display:none"></pre>
+    </div></div>
+  </div></div>
   <div class="panel"><div class="ph">未登録の職人（承認待ち）</div><div class="pc" id="pending"><div class="empty">読込中…</div></div></div>
   <div class="panel"><div class="ph">職人一覧</div><div class="pc" id="workers"><div class="empty">読込中…</div></div></div>
   <div class="panel"><div class="ph">現場</div><div class="pc"><div id="siteList"><div class="empty">読込中…</div></div>
@@ -93,7 +110,30 @@ async function load(){
         +'<a class="qrlink" href="'+qurl+'" target="_blank">掲示用QR →</a></div>';
     });
     el("siteList").innerHTML=s;
+    // 環境
+    curEnv=(j.env==="dev")?"dev":"prod";
+    renderEnv();
   }catch(e){alert("エラー: "+(e.message||e));}
+}
+var curEnv="prod";
+function renderEnv(){
+  var bd=el("env-badge"), bt=el("env-btn");
+  if(curEnv==="dev"){ bd.textContent="dev（テスト）"; bd.style.background="#fff7e6"; bd.style.color="#b45309"; bt.textContent="prodに切替"; }
+  else{ bd.textContent="prod（本番）"; bd.style.background="#e7f8ef"; bd.style.color="#0a8f4f"; bt.textContent="devに切替"; }
+}
+async function toggleEnv(){
+  var next=(curEnv==="dev")?"prod":"dev";
+  if(next==="prod" && !confirm("prod（本番）に切り替えます。通知が実送信されるようになります。よろしいですか？")) return;
+  if(next==="dev" && !confirm("dev（テスト）に切り替えます。すべての通知が実送信されず dryrun ログのみになります。よろしいですか？")) return;
+  if(await post({action:"set_env",env:next})){ curEnv=next; renderEnv(); }
+}
+async function dryTest(fn,btn){
+  var out=el("dry-out"); out.style.display="block"; out.textContent="["+fn+"] 実行中…";
+  if(btn) btn.disabled=true;
+  try{
+    var j=await post({action:"dry_test",fn:fn});
+    if(j) out.textContent="["+fn+"] status "+j.status+"\n"+JSON.stringify(j.result,null,2);
+  }finally{ if(btn) btn.disabled=false; }
 }
 async function post(body){var r=await fetch(BASE+"/genba-admin",{method:"POST",headers:hdrs(),body:JSON.stringify(body)});var j=await r.json();if(!j.ok){alert("失敗: "+(j.error||""));return null;}return j;}
 async function approveW(uid,name){var c=el("c_"+uid),t=el("t_"+uid);if(await post({action:"approve_worker",line_user_id:uid,name:name,company_name:c?c.value:"",trade:t?t.value:""}))load();}
