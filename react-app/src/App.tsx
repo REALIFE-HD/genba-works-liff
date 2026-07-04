@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
-import { BottomNav, type TabKey } from "./components/BottomNav";
+import { BottomNav } from "./components/BottomNav";
+import { Header } from "./components/Header";
+import { RegisterOverlay } from "./components/RegisterOverlay";
+import { GenbaProvider, useGenba } from "./context/GenbaContext";
+import { ensureLiffSession, LiffLoginRedirectError } from "./liff/init";
+import { ChatPage } from "./pages/ChatPage";
 import { HomePage } from "./pages/HomePage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
-import { ensureLiffSession, LiffLoginRedirectError, liff } from "./liff/init";
+import { MyPage } from "./pages/MyPage";
+import { PunchPage } from "./pages/PunchPage";
+import { ReportPage } from "./pages/ReportPage";
+import { SiteDetailPage } from "./pages/SiteDetailPage";
+import { SitesPage } from "./pages/SitesPage";
 
 type Phase =
   | { kind: "loading" }
@@ -10,16 +18,38 @@ type Phase =
   | { kind: "error"; message: string }
   | { kind: "ready"; displayName: string };
 
+function AppShell() {
+  const { view, tab, setTab, me, reportAlert, displayName } = useGenba();
+
+  return (
+    <>
+      <Header displayName={displayName} env={me?.env} />
+      <main className="px-4 pt-4">
+        {view === "home" && <HomePage />}
+        {view === "punch" && <PunchPage />}
+        {view === "sites" && <SitesPage />}
+        {view === "site" && <SiteDetailPage />}
+        {view === "report" && <ReportPage />}
+        {view === "chat" && <ChatPage />}
+        {view === "my" && <MyPage />}
+      </main>
+      {view !== "punch" && (
+        <BottomNav active={tab} onChange={setTab} reportAlert={reportAlert} />
+      )}
+      <RegisterOverlay />
+    </>
+  );
+}
+
 export default function App() {
   const [phase, setPhase] = useState<Phase>({ kind: "loading" });
-  const [tab, setTab] = useState<TabKey>("home");
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        await ensureLiffSession();
-        const profile = await liff.getProfile();
+        const l = await ensureLiffSession();
+        const profile = await l.getProfile();
         if (!cancelled) {
           setPhase({
             kind: "ready",
@@ -62,21 +92,10 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto min-h-dvh max-w-[460px] pb-[calc(5rem+env(safe-area-inset-bottom))]">
-      <main className="px-4 pt-4">
-        {tab === "home" ? (
-          <HomePage displayName={phase.displayName} />
-        ) : tab === "sites" ? (
-          <PlaceholderPage title="現場一覧" />
-        ) : tab === "report" ? (
-          <PlaceholderPage title="日報" />
-        ) : tab === "chat" ? (
-          <PlaceholderPage title="現場チャット" />
-        ) : (
-          <PlaceholderPage title="マイページ" />
-        )}
-      </main>
-      <BottomNav active={tab} onChange={setTab} />
-    </div>
+    <GenbaProvider displayName={phase.displayName}>
+      <div className="mx-auto min-h-dvh max-w-[460px] pb-[calc(5rem+env(safe-area-inset-bottom))]">
+        <AppShell />
+      </div>
+    </GenbaProvider>
   );
 }
