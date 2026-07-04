@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>清水様邸パイロット — 今日やること</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:#f2f5f7;color:#111;padding:16px 16px 32px;line-height:1.5}
+h1{font-size:20px;margin:0 0 4px}
+.sub{font-size:13px;color:#6b7280;margin-bottom:16px}
+.step{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #e5e7eb;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.step.done{border-color:#86efac;background:#f0fdf4}
+.step h2{margin:0 0 8px;font-size:16px;display:flex;align-items:center;gap:8px}
+.num{width:28px;height:28px;border-radius:50%;background:#06c755;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.step p{margin:0;font-size:14px;color:#374151}
+.step a{color:#185fa5;font-weight:700}
+.btn{display:block;width:100%;text-align:center;background:#06c755;color:#fff;text-decoration:none;padding:14px;border-radius:14px;font-weight:800;font-size:15px;margin-top:10px}
+.btn.secondary{background:#fff;color:#111;border:1px solid #d1d5db}
+.check{width:22px;height:22px;accent-color:#06c755;margin-right:8px}
+label{display:flex;align-items:flex-start;gap:8px;font-size:14px;padding:8px 0;border-top:1px solid #f0f2f4;margin-top:8px;cursor:pointer}
+footer{font-size:12px;color:#9ca3af;text-align:center;margin-top:20px}
+</style>
+</head>
+<body>
+<h1>清水様邸パイロット</h1>
+<p class="sub">REA-138 · 約5分 · 外山さんセルフテスト or 職人1名</p>
+
+<div class="step">
+  <h2><span class="num">1</span> 現場WORKSを開く</h2>
+  <p>LINE → @144qpbeu → 下部<strong>メニュー</strong> → 右<strong>現場WORKS</strong></p>
+  <a class="btn" href="https://liff.line.me/2010459645-nZrNO9J0">現場WORKSを開く</a>
+</div>
+
+<div class="step">
+  <h2><span class="num">2</span> 入場打刻</h2>
+  <p>「QRコードを読み取る」→ token <code>SHIMIZU-21FDCEEE72</code>（掲示QRまたは下のQRページ）</p>
+  <a class="btn secondary" href="site.html?token=SHIMIZU-21FDCEEE72&name=清水様邸">掲示用QRを表示</a>
+</div>
+
+<div class="step">
+  <h2><span class="num">3</span> 日報提出</h2>
+  <p>下部タブ「日報」→ 写真1枚以上 → 種別タップ（施工前/中/完了）→ 作業内容 → 提出</p>
+</div>
+
+<div class="step">
+  <h2><span class="num">4</span> 退場打刻</h2>
+  <p>再度QR読取 → <strong>退場</strong></p>
+</div>
+
+<div class="step">
+  <h2><span class="num">5</span> 確認（PC）</h2>
+  <p>提出後、管理者画面で反映を確認</p>
+  <a class="btn secondary" href="https://realife-bms.vercel.app/deals/a977a60a-0692-4a68-8f34-d26fc97be9fb">BMS 清水様邸</a>
+  <a class="btn secondary" href="https://realife-sk.vercel.app/genba/fff81ad6-bec4-407c-9672-526749b7c992" style="margin-top:8px">SK 工事詳細</a>
+</div>
+
+<div class="step">
+  <h2><span class="num">✓</span> チェック（タップで記録）</h2>
+  <label><input type="checkbox" class="check">入退場できた</label>
+  <label><input type="checkbox" class="check">日報を迷わず出せた</label>
+  <label><input type="checkbox" class="check">写真種別が分かった</label>
+  <label><input type="checkbox" class="check">BMS/SKに反映された</label>
+  <label><input type="checkbox" class="check">使いにくい点なし（あればメモ）</label>
+  <button class="btn secondary" onclick="copyResult()" style="border:none;width:100%;cursor:pointer">結果をコピー（Linear用）</button>
+</div>
+
+<footer>完了したら REA-138 にコメント</footer>
+<script>
+function copyResult(){
+  var lines=["【清水様邸パイロット実行 " + new Date().toLocaleString("ja-JP") + "】",""];
+  document.querySelectorAll("label").forEach(function(l){
+    var cb=l.querySelector("input");
+    lines.push((cb.checked?"[x]":"[ ]")+" "+l.textContent.trim());
+  });
+  navigator.clipboard.writeText(lines.join("\n")).then(function(){ alert("コピーしました"); });
+}
+</script>
+</body>
+</html>
