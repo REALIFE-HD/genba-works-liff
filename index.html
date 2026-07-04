@@ -108,13 +108,14 @@ input,select,textarea{font-size:16px !important}
       <div class="card" id="todayCard" style="padding:12px"><div class="spin" style="padding:12px">確認中…</div></div>
       <div class="sec">クイックメニュー</div>
       <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px">
-        <button class="btn btn-scan" onclick="go('punch')" style="padding:16px 8px;font-size:15px">打刻する</button>
+        <button class="btn btn-scan" onclick="openPunch('home')" style="padding:16px 8px;font-size:15px">打刻する</button>
         <button class="btn" onclick="go('sites')" style="background:#EAF4FF;color:#2563EB;padding:16px 8px;font-size:15px">現場を探す</button>
       </div>
     </div>
 
-    <!-- 打刻：QR→入退場 -->
+    <!-- 打刻：QR→入退場（REA-174: 独立タブ廃止。ホーム/現場詳細から入る子画面） -->
     <div class="view" id="v-punch">
+      <button class="backbtn" onclick="closePunch()">‹ 戻る</button>
       <div class="sec"><span class="n">1</span>現場のQRコードを読み取る</div>
       <div class="card">
         <div class="site-box pending" id="siteBox">
@@ -248,7 +249,6 @@ input,select,textarea{font-size:16px !important}
 
 <div class="nav">
   <button class="on" id="nav-home" onclick="go('home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>ホーム</button>
-  <button id="nav-punch" onclick="go('punch')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>打刻</button>
   <button id="nav-sites" onclick="go('sites')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>現場</button>
   <button id="nav-report" onclick="go('report')"><span class="navdot"></span><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>日報</button>
   <button id="nav-chat" onclick="go('chat')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>チャット</button>
@@ -278,10 +278,15 @@ function go(v){
   });
   // 現場詳細はナビ上「現場」の配下として扱う
   if(v==='site'){var nb=document.getElementById('nav-sites');if(nb)nb.classList.add('on');}
+  // 打刻は独立タブ廃止（REA-174: 5タブ化）。遷移元（ホーム/現場詳細）の配下として扱う
+  if(v==='punch'){var pb=document.getElementById(punchBack==='site'?'nav-sites':'nav-home');if(pb)pb.classList.add('on');}
   if(v!=='site'){stopSiteChat();}
   if(v==='chat'){startChat();}else{stopChat();}
   if(v==='sites'){renderSitesTab();}
 }
+var punchBack='home';
+function openPunch(from){punchBack=(from==='site'&&curSite)?'site':'home';go('punch');}
+function closePunch(){go(punchBack==='site'?'site':'home');}
 function fmtT(iso){if(!iso)return'–';return new Date(iso).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});}
 
 async function boot(){
@@ -333,8 +338,8 @@ function nextSched(){
   return best;
 }
 function todoRow(cls,txt,act){
-  var acts={scan:"go('punch');scanQR()",report:"go('report')",sched:"go('sites')"};
-  var click=act?(' onclick="'+acts[act]+'"'):'';
+  var acts={scan:"openPunch('home');scanQR()",punch:"openPunch('home')",report:"go('report')",sched:"go('sites')"};
+  var click=act?(' onclick="'+acts[act]+'" style="cursor:pointer"'):'';
   return '<div class="todo '+cls+'"'+click+'>'+txt+(act?'<span class="ar">›</span>':'')+'</div>';
 }
 function renderToday(j){
@@ -349,7 +354,7 @@ function renderToday(j){
   if(navRep)navRep.classList.toggle('alert',hasPunch&&!hasReport);
   var html='';
   if(t.status==='in'){
-    html+=todoRow('todo-ok','在場中（'+Math.floor((t.elapsed_min||0)/60)+'時間'+((t.elapsed_min||0)%60)+'分）。退場時に打刻を忘れずに');
+    html+=todoRow('todo-ok','在場中（'+Math.floor((t.elapsed_min||0)/60)+'時間'+((t.elapsed_min||0)%60)+'分）。退場するときはここから打刻','punch');
   }else if(!hasPunch){
     html+=todoRow('todo-info','本日はまだ打刻がありません。現場に着いたらQRを読み取り','scan');
   }
@@ -509,7 +514,7 @@ function renderPaneOv(){
     html+='<div class="todo todo-ok" style="margin-bottom:12px">この現場に在場中（'+Math.floor((t.elapsed_min||0)/60)+'時間'+((t.elapsed_min||0)%60)+'分）</div>';
   var w=workersToday(id);
   if(w)html+='<div class="todo todo-info" style="cursor:default;margin-bottom:12px">今日の職人：'+w+'人</div>';
-  html+='<div style="margin-bottom:14px"><button class="btn btn-scan" onclick="go(\'punch\');scanQR()" style="padding:16px;font-size:15px">QRを読み取って打刻</button></div>';
+  html+='<div style="margin-bottom:14px"><button class="btn btn-scan" onclick="openPunch(\'site\');scanQR()" style="padding:16px;font-size:15px">この現場で打刻する（QR読取）</button></div>';
   html+='<div class="sec">この現場の予定（入らない日はタップで切替）</div><div class="card" style="padding:14px;margin-bottom:14px">';
   var scheds=(schedCache||[]).filter(function(s){return s.site_id===id;});
   if(!scheds.length)html+='<div class="spin" style="padding:6px">予定はありません</div>';
