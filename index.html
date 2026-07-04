@@ -496,7 +496,7 @@ function clearUnread(siteId){
 }
 function addrLink(a){return '<a class="saddr" href="https://maps.google.com/?q='+encodeURIComponent(a)+'" target="_blank" rel="noreferrer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>'+esc(a)+'（地図）</a>';}
 function todoRow(cls,txt,act){
-  var acts={scan:"openPunch('home');scanQR()",punch:"openPunch('home')",report:"go('report')",sched:"go('sites')",chat:"go('chat')"};
+  var acts={scan:"openPunch('home');scanQR()",punch:"openPunch('home')",out:"openPunch('home');if(!qr){scanQR();}else{var ob=document.getElementById('outBtn');if(ob)ob.scrollIntoView({behavior:'smooth',block:'center'});}",report:"go('report')",sched:"go('sites')",chat:"go('chat')"};
   var click=act?(' onclick="'+acts[act]+'" style="cursor:pointer"'):'';
   return '<div class="todo '+cls+'"'+click+'>'+txt+(act?'<span class="ar">›</span>':'')+'</div>';
 }
@@ -573,7 +573,7 @@ function renderToday(j){
     html+=todoRow('todo-warn','未提出日報を書く（'+(unrep===today?'本日分':fmtMD2(unrep))+'・写真と作業内容）','report');
   }
   if(t.status==='in'){
-    html+=todoRow('todo-info','退場するときはQRで退場打刻','scan');
+    html+=todoRow('todo-warn','退場打刻を忘れずに（QR→退場ボタン）','out');
   }else if(!hasPunch&&schedToday()){
     html+=todoRow('todo-info','入場する（現場に着いたらQR読取）','scan');
   }
@@ -977,14 +977,14 @@ async function punch(type){
     if(j.ok){
       pendingPunch=null;
       setSite(j.site||'現場',true);
-      setStatus((type==='in'?'入場':'退場')+"を記録しました（"+fmtT(j.attendance.occurred_at)+"）　"+(j.site||''),"ok");
       // REA-180: サーバー再取得を待たずに状態を反映（loadMeが後追いで正す）
       if(lastMe){
         var lt=lastMe.today||{};
         if(type==='in'){lastMe.today={status:'in',site_id:lt.site_id,first_in:j.attendance.occurred_at,elapsed_min:0};}
         else{lastMe.today={status:'out',site_id:lt.site_id,first_in:lt.first_in||j.attendance.occurred_at,last_out:j.attendance.occurred_at};}
       }
-      if(type==='out'){qr=null;setSite('QR未読取',false);} // 退場後はサマリー表示へ。再入場はQR再読取から
+      if(type==='out'){qr=null;setSite('QR未読取',false);setStatus('退場を記録しました。日報タブから報告を提出できます。','ok');go('report');}
+      else{setStatus('入場を記録しました。作業終了後は必ず退場打刻してください。','ok');}
       setButtons(true);loadMe();
     }else if(j.error==='worker_not_found'){setStatus("はじめての方は登録してください。","err");loadMe();}
     else if(j.error==='qr_invalid'||j.error==='no_qr'){setStatus("このQRコードは現場に登録されていません。","err");setButtons(true);}
@@ -1011,7 +1011,7 @@ var PHOTO_TYPE_LABELS={before:'施工前',during:'施工中',after:'完了'};
 var PHOTO_TYPE_COLORS={before:'#2563eb',during:'#0a8f4f',after:'#b45309'};
 function repStatus(m,k){var s=document.getElementById('repStatus');s.className='status'+(k?' '+k:'');document.getElementById('repMsg').textContent=m;}
 function cyclePhotoType(i){var cur=photos[i].type;var idx=PHOTO_TYPES.indexOf(cur);photos[i].type=PHOTO_TYPES[(idx+1)%PHOTO_TYPES.length];renderThumbs();}
-function renderThumbs(){var t=document.getElementById('thumbs');t.innerHTML='';photos.forEach(function(p,i){var d=document.createElement('div');d.style.cssText='position:relative;width:92px;height:114px;border-radius:12px;overflow:hidden;border:1px solid var(--bd)';d.innerHTML='<img src="'+p.data+'" style="width:100%;height:92px;object-fit:cover">'+'<span onclick="cyclePhotoType('+i+')" style="position:absolute;left:0;right:0;bottom:0;height:22px;line-height:22px;text-align:center;font-size:11.5px;font-weight:800;color:#fff;background:'+PHOTO_TYPE_COLORS[p.type]+';cursor:pointer">'+PHOTO_TYPE_LABELS[p.type]+'</span>'+'<span onclick="removePhoto('+i+')" style="position:absolute;top:2px;right:2px;width:26px;height:26px;border-radius:50%;background:rgba(17,24,28,.82);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer">×</span>';t.appendChild(d);});}
+function renderThumbs(){var t=document.getElementById('thumbs');t.innerHTML='';photos.forEach(function(p,i){var d=document.createElement('div');d.style.cssText='position:relative;width:96px;height:122px;border-radius:12px;overflow:hidden;border:1px solid var(--bd)';d.innerHTML='<img src="'+p.data+'" style="width:100%;height:88px;object-fit:cover">'+'<span onclick="cyclePhotoType('+i+')" style="position:absolute;left:0;right:0;bottom:0;height:34px;line-height:34px;text-align:center;font-size:13px;font-weight:800;color:#fff;background:'+PHOTO_TYPE_COLORS[p.type]+';cursor:pointer;touch-action:manipulation">'+PHOTO_TYPE_LABELS[p.type]+'</span>'+'<span onclick="removePhoto('+i+')" style="position:absolute;top:2px;right:2px;width:28px;height:28px;border-radius:50%;background:rgba(17,24,28,.82);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer">×</span>';t.appendChild(d);});}
 function removePhoto(i){photos.splice(i,1);renderThumbs();}
 function addPhotos(ev){var files=ev.target.files;if(!files)return;Array.from(files).forEach(function(f){if(photos.length>=6)return;resizeImage(f,function(durl){photos.push({data:durl,type:'during'});renderThumbs();});});ev.target.value='';}
 function resizeImage(file,cb){var img=new Image();var rd=new FileReader();rd.onload=function(){img.onload=function(){var max=1280;var w=img.width,h=img.height;if(w>max||h>max){if(w>h){h=Math.round(h*max/w);w=max;}else{w=Math.round(w*max/h);h=max;}}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',0.7));};img.src=rd.result;};rd.readAsDataURL(file);}
