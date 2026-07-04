@@ -39,6 +39,22 @@ svg{display:block}
 .qk3 button{border:1px solid var(--bd);background:#fff;border-radius:14px;padding:13px 4px;font-size:12px;font-weight:800;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit}
 .qk3 button svg{color:var(--line-d)}
 .todo-mute{background:#f1f4f2;color:var(--sub)}
+/* 打刻Stepper（REA-180: QR読取→入場→退場の現在地を常時表示） */
+.stepper{display:flex;align-items:center;padding:2px 6px 10px}
+.step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto;width:72px}
+.step .c{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#e9edf0;color:#aab2b9}
+.step.on .c{background:var(--line);color:#fff}
+.step.done .c{background:var(--okbg);color:var(--ok)}
+.step .l{font-size:9.5px;font-weight:800;color:#aab2b9;white-space:nowrap}
+.step.on .l,.step.done .l{color:var(--line-d)}
+.sbar{flex:1;height:3px;border-radius:2px;background:#e9edf0;margin:0 2px 15px}
+.sbar.done{background:var(--line)}
+.remind{background:#fff7e6;border:1px solid #f5d98a;border-radius:14px;padding:12px 14px;font-size:12px;font-weight:700;color:#b45309;display:flex;gap:8px;align-items:flex-start;line-height:1.55;margin-bottom:18px}
+.sum{display:flex;align-items:center;justify-content:center;gap:14px;padding:6px 0 2px;font-variant-numeric:tabular-nums}
+.sum .t{text-align:center}
+.sum .v{font-size:20px;font-weight:800}
+.sum .l{font-size:10px;color:var(--sub);font-weight:700}
+.sum .ar{color:#cbd2d8}
 .body{padding:18px 16px 0}
 .view{display:none}.view.on{display:block}
 .sec{font-size:12px;font-weight:800;color:var(--sub);letter-spacing:.05em;margin:2px 4px 10px;display:flex;align-items:center;gap:7px}
@@ -137,25 +153,31 @@ input,select,textarea{font-size:16px !important}
       </div>
     </div>
 
-    <!-- 打刻：QR→入退場（REA-174: 独立タブ廃止。ホーム/現場詳細から入る子画面） -->
+    <!-- 打刻：QR→入場→退場（REA-180: Stepper・状態別ボタン制御・退場忘れ防止） -->
     <div class="view" id="v-punch">
       <button class="backbtn" onclick="closePunch()">‹ 戻る</button>
-      <div class="sec"><span class="n">1</span>現場のQRコードを読み取る</div>
+      <div class="stepper" id="stepper"></div>
       <div class="card">
         <div class="site-box pending" id="siteBox">
           <div class="site-ic" id="siteIc"></div>
           <div class="site-meta"><div class="lbl">現場</div><div class="nm" id="siteName">QR未読取</div></div>
         </div>
+        <div class="selapsed" id="punchElapsed" style="display:none;text-align:center;padding:8px 0 0"></div>
         <div style="height:14px"></div>
-        <button class="btn btn-scan" onclick="scanQR()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h.01M17 21h4v-4"/></svg> QRコードを読み取る</button>
+        <button class="btn btn-scan" onclick="scanQR()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h.01M17 21h4v-4"/></svg> <span id="scanLbl">QRコードを読み取る</span></button>
       </div>
-      <div class="sec"><span class="n">2</span>打刻する</div>
-      <div class="card">
+      <div class="remind" id="punchRemind" style="display:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>17時を過ぎています。退場打刻を忘れていませんか？</div>
+      <div class="card" id="punchCard">
         <div class="punch-row">
           <button class="btn btn-in" id="inBtn" onclick="punch('in')" disabled><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v13"/><path d="M6 11l6 6 6-6"/></svg><span class="t">入場</span></button>
           <button class="btn btn-out" id="outBtn" onclick="punch('out')" disabled><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V7"/><path d="M6 13l6-6 6 6"/></svg><span class="t">退場</span></button>
         </div>
         <div class="hint" id="hint">先にQRコードを読み取ってください</div>
+      </div>
+      <div class="card" id="outSummary" style="display:none">
+        <div class="sum" id="sumRow"></div>
+        <div class="hint" style="margin-top:8px">おつかれさまでした。記録済みです。再入場する場合はQRを読み取り直してください</div>
+        <button class="btn btn-scan" onclick="go('report')" style="margin-top:12px;padding:14px;font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg> 日報を書く</button>
       </div>
       <div class="status" id="status"><span class="dot"></span><span class="msg" id="msg">初期化中…</span></div>
       <div class="uid" id="uid"></div>
@@ -290,10 +312,67 @@ var TRADES=["コーティング","塗装","内装","足場","電気","設備","�
 var H={"content-type":"application/json","apikey":ANON,"Authorization":"Bearer "+ANON};
 var ICON_PIN='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>';
 var ICON_CHK='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+var ICON_NAV='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>';
+function navUrl(a){return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(a);}
 
 function setStatus(m,k){var s=document.getElementById('status');s.className='status'+(k?' '+k:'');document.getElementById('msg').textContent=m;}
 function showUid(u){var el=document.getElementById('uid');el.style.display='block';el.innerHTML='未登録のようです。下記の LINE userId を監督に伝えて登録してください：<br><b>'+u+'</b>';}
-function setButtons(on){document.getElementById('inBtn').disabled=!on;document.getElementById('outBtn').disabled=!on;document.getElementById('hint').textContent=on?'入場 / 退場 を押してください':'先にQRコードを読み取ってください';}
+/* REA-180: 状態別のボタン制御。送信中のみ setButtons(false) で一時無効化 */
+function setButtons(on){
+  if(!on){document.getElementById('inBtn').disabled=true;document.getElementById('outBtn').disabled=true;document.getElementById('hint').textContent='送信中…';return;}
+  updatePunchUI();
+}
+function renderStepper(){
+  var el=document.getElementById('stepper'); if(!el)return;
+  var t=(lastMe&&lastMe.today)||{};
+  var scanned=!!qr, inDone=(t.status==='in'||t.status==='out'), outDone=(t.status==='out');
+  function st(state,num,label){return '<div class="step'+(state?' '+state:'')+'"><span class="c">'+(state==='done'?'✓':num)+'</span><span class="l">'+label+'</span></div>';}
+  el.innerHTML=st((scanned||inDone)?'done':'on','1','QR読取')
+    +'<span class="sbar'+((scanned||inDone)?' done':'')+'"></span>'
+    +st(inDone?'done':(scanned?'on':''),'2',inDone?('入場 '+fmtT(t.first_in)):'入場')
+    +'<span class="sbar'+(inDone?' done':'')+'"></span>'
+    +st(outDone?'done':(t.status==='in'?'on':''),'3',outDone?('退場 '+fmtT(t.last_out)):'退場');
+}
+function updatePunchUI(){
+  var inB=document.getElementById('inBtn'); if(!inB)return;
+  var t=(lastMe&&lastMe.today)||{};
+  var outB=document.getElementById('outBtn'), pc=document.getElementById('punchCard'), os=document.getElementById('outSummary');
+  var hint=document.getElementById('hint'), rem=document.getElementById('punchRemind'), pe=document.getElementById('punchElapsed'), sl=document.getElementById('scanLbl');
+  renderStepper();
+  // 退場忘れ防止（在場中で17時以降）
+  var hourJST=parseInt(new Date().toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',hour12:false}),10);
+  if(rem)rem.style.display=(t.status==='in'&&hourJST>=17)?'flex':'none';
+  // 在場中は経過時間を強調
+  if(pe){
+    if(t.status==='in'){pe.style.display='block';pe.innerHTML=Math.floor((t.elapsed_min||0)/60)+'時間'+((t.elapsed_min||0)%60)+'分<small>在場中 ・ '+fmtT(t.first_in)+' 入場</small>';}
+    else pe.style.display='none';
+  }
+  // 退場済（QR再読取まで）はサマリー＋日報導線に切替
+  if(t.status==='out'&&!qr){
+    if(pc)pc.style.display='none';
+    if(os){
+      os.style.display='block';
+      var mins=Math.max(0,(new Date(t.last_out)-new Date(t.first_in))/60000);
+      var sr=document.getElementById('sumRow');
+      if(sr)sr.innerHTML='<span class="t"><div class="v">'+fmtT(t.first_in)+'</div><div class="l">入場</div></span><span class="ar">→</span><span class="t"><div class="v">'+fmtT(t.last_out)+'</div><div class="l">退場</div></span><span class="ar">＝</span><span class="t"><div class="v">'+(Math.round(mins/6)/10)+'h</div><div class="l">滞在</div></span>';
+    }
+    if(sl)sl.textContent='再入場する場合はQRを読み取る';
+    return;
+  }
+  if(pc)pc.style.display='block';
+  if(os)os.style.display='none';
+  if(sl)sl.textContent=qr?'別のQRを読み直す':'QRコードを読み取る';
+  if(!qr){ // QR未読取: 両方無効
+    inB.disabled=true; outB.disabled=true;
+    hint.textContent='先にQRコードを読み取ってください';
+  }else if(t.status==='in'){ // 在場中: 退場のみ
+    inB.disabled=true; outB.disabled=false;
+    hint.textContent='帰るときは「退場」を押してください';
+  }else{ // 読取済・未入場（退場済からの再入場含む）: 入場のみ
+    inB.disabled=false; outB.disabled=true;
+    hint.textContent='「入場」を押してください（未入場のため退場は押せません）';
+  }
+}
 function setSite(n,done){document.getElementById('siteName').textContent=n;document.getElementById('siteBox').className='site-box '+(done?'done':'pending');document.getElementById('siteIc').innerHTML=done?ICON_CHK:ICON_PIN;}
 function go(v){
   ['home','punch','sites','site','report','chat','my'].forEach(function(x){
@@ -309,7 +388,7 @@ function go(v){
   if(v==='sites'){renderSitesTab();}
 }
 var punchBack='home';
-function openPunch(from){punchBack=(from==='site'&&curSite)?'site':'home';go('punch');}
+function openPunch(from){punchBack=(from==='site'&&curSite)?'site':'home';go('punch');updatePunchUI();}
 function closePunch(){go(punchBack==='site'?'site':'home');}
 function fmtT(iso){if(!iso)return'–';return new Date(iso).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});}
 
@@ -438,6 +517,7 @@ function renderNext(){
 function renderToday(j){
   renderStateCard(j);
   renderNext();
+  updatePunchUI();
   var el=document.getElementById('todayCard'); if(!el)return;
   var today=jstToday();
   var t=(j&&j.today)||{};
@@ -519,7 +599,12 @@ function siteCard(s,m){
     +'<span class="ic">'+ICON_PIN+'</span>'
     +'<span style="min-width:0;flex:1"><span class="nm">'+esc(s.name)+badge+'</span>'
     +(sub.length?'<span style="display:block;font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.5">'+sub.join('　')+'</span>':'')
-    +'</span><span class="ar">›</span></div>';
+    +'</span>'
+    // REA-179: ナビ導線は独立ボタン（カード本体タップ=現場詳細と分離）
+    +(s.address
+      ?'<a href="'+navUrl(s.address)+'" target="_blank" rel="noreferrer" aria-label="ナビ" onclick="event.stopPropagation()" style="flex:0 0 auto;width:40px;height:40px;border-radius:12px;border:1px solid #cfe3fa;background:#eef6ff;color:#2563eb;display:flex;align-items:center;justify-content:center">'+ICON_NAV+'</a>'
+      :'<span class="ar">›</span>')
+    +'</div>';
 }
 function renderSitesTab(){
   var el=document.getElementById('siteList'); if(!el)return;
@@ -565,7 +650,7 @@ function gcalUrl(siteName,start,end){
     +'&dates='+start.replace(/-/g,'')+'/'+e2+'&details='+encodeURIComponent('現場WORKSで登録した予定');
 }
 /* ---- 現場詳細：概要/写真/図面/チャット/日報 の5タブ ---- */
-var SITE_TABS=[['ov','概要'],['photo','写真'],['plan','図面'],['chat','チャット'],['report','日報']];
+var SITE_TABS=[['ov','概要'],['photo','写真'],['plan','図面・資料'],['chat','チャット'],['report','日報']];
 var curTab='ov';
 function openSite(id){
   var s=null; ((lastMe&&lastMe.sites)||[]).forEach(function(x){if(x.id===id)s=x;});
@@ -581,6 +666,7 @@ function renderSiteHead(){
     '<div style="font-weight:800;font-size:18px;line-height:1.35">'+esc(curSite.name)+badge+'</div>'
     +(curSite.address
       ?'<a href="https://maps.google.com/?q='+encodeURIComponent(curSite.address)+'" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:#185fa5;text-decoration:none;margin-top:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>'+esc(curSite.address)+'（地図）</a>'
+       +'<div><a href="'+navUrl(curSite.address)+'" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px;margin-top:9px;background:#eef6ff;color:#2563eb;border:1px solid #cfe3fa;border-radius:11px;padding:8px 13px;font-size:12px;font-weight:800;text-decoration:none">'+ICON_NAV+'ナビを開始</a></div>'
       :'');
 }
 function renderSiteTabs(){
@@ -609,7 +695,7 @@ function renderPaneOv(){
   var w=workersToday(id);
   if(w)html+='<div class="todo todo-info" style="cursor:default;margin-bottom:12px">今日の職人：'+w+'人</div>';
   html+='<div style="margin-bottom:14px"><button class="btn btn-scan" onclick="openPunch(\'site\');scanQR()" style="padding:16px;font-size:15px">この現場で打刻する（QR読取）</button></div>';
-  html+='<div class="sec">この現場の予定（入らない日はタップで切替）</div><div class="card" style="padding:14px;margin-bottom:14px">';
+  html+='<div class="sec">工程（入らない日はタップで切替）</div><div class="card" style="padding:14px;margin-bottom:14px">';
   var scheds=(schedCache||[]).filter(function(s){return s.site_id===id;});
   if(!scheds.length)html+='<div class="spin" style="padding:6px">予定はありません</div>';
   else scheds.forEach(function(s,i){
@@ -623,6 +709,16 @@ function renderPaneOv(){
     html+='</div><a class="gcal" href="'+gcalUrl(curSite.name,s.start_date,s.end_date)+'" target="_blank" rel="noreferrer">＋ スマホのカレンダーに追加</a></div>';
   });
   html+='</div>';
+  // REA-179: 最近の動き（写真/日報/チャットの入口を概要に集約）
+  var reps2=((lastMe&&lastMe.reports)||[]).filter(function(r){return r.site_id===id;});
+  var phN=0, lastRep=null;
+  reps2.forEach(function(r){phN+=(r.photos||[]).length; if(!lastRep||r.date>lastRep)lastRep=r.date;});
+  function mvRow(txt,pane){return '<div class="todo todo-mute" style="cursor:pointer" onclick="showPane(\''+pane+'\')">'+txt+'<span class="ar">›</span></div>';}
+  html+='<div class="sec">最近の動き</div><div class="card" style="padding:10px;margin-bottom:14px">'
+    +mvRow('報告写真 '+phN+'枚','photo')
+    +mvRow(lastRep?('日報 '+fmtMD(lastRep)+' 提出'):'日報 まだ提出がありません','report')
+    +mvRow('この現場のチャットを開く','chat')
+    +'</div>';
   html+='<div class="sec">この現場に予定を登録</div><div class="card" style="padding:14px">'
     +'<div style="display:flex;gap:10px"><div style="flex:1"><label style="display:block;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:6px">開始日</label><input type="date" id="sc2-start" style="width:100%;padding:11px;border:1px solid var(--bd);border-radius:11px;font:inherit"></div>'
     +'<div style="flex:1"><label style="display:block;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:6px">終了日</label><input type="date" id="sc2-end" style="width:100%;padding:11px;border:1px solid var(--bd);border-radius:11px;font:inherit"></div></div>'
@@ -678,7 +774,7 @@ function renderPanePhoto(){
 }
 function renderPanePlan(){
   var el=document.getElementById('sp-plan'); if(!el)return;
-  el.innerHTML='<div class="sec">図面</div><div class="card" style="text-align:center;padding:28px 16px">'
+  el.innerHTML='<div class="sec">図面・資料</div><div class="card" style="text-align:center;padding:28px 16px">'
     +'<div style="margin-bottom:10px;color:#cbd2d8"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg></div>'
     +'<div style="font-weight:700;font-size:14px;color:var(--sub)">図面はまだ登録されていません</div>'
     +'<div style="font-size:12px;color:#9aa4ad;margin-top:6px">監督が管理画面から図面を登録すると、ここに表示されます（準備中）</div></div>';
@@ -821,7 +917,7 @@ async function scanQR(){
     setStatus("QRをスキャン中…","busy");
     var r=await liff.scanCodeV2();qr=r.value;
     setSite("読取済み（打刻できます）",false);setButtons(true);
-    setStatus("QR読取OK。入場または退場を押してください。","ok");
+    setStatus("QR読取OK。","ok");
   }catch(e){setStatus("QR読取に失敗しました。もう一度お試しください。","err");}
 }
 async function punch(type){
@@ -836,6 +932,13 @@ async function punch(type){
       pendingPunch=null;
       setSite(j.site||'現場',true);
       setStatus((type==='in'?'入場':'退場')+"を記録しました（"+fmtT(j.attendance.occurred_at)+"）　"+(j.site||''),"ok");
+      // REA-180: サーバー再取得を待たずに状態を反映（loadMeが後追いで正す）
+      if(lastMe){
+        var lt=lastMe.today||{};
+        if(type==='in'){lastMe.today={status:'in',site_id:lt.site_id,first_in:j.attendance.occurred_at,elapsed_min:0};}
+        else{lastMe.today={status:'out',site_id:lt.site_id,first_in:lt.first_in||j.attendance.occurred_at,last_out:j.attendance.occurred_at};}
+      }
+      if(type==='out'){qr=null;setSite('QR未読取',false);} // 退場後はサマリー表示へ。再入場はQR再読取から
       setButtons(true);loadMe();
     }else if(j.error==='worker_not_found'){setStatus("はじめての方は登録してください。","err");loadMe();}
     else if(j.error==='qr_invalid'||j.error==='no_qr'){setStatus("このQRコードは現場に登録されていません。","err");setButtons(true);}
