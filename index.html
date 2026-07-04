@@ -17,8 +17,28 @@ svg{display:block}
 .brand{font-weight:800;font-size:16px;line-height:1.1}.brand small{display:block;font-weight:600;font-size:9.5px;opacity:.85;letter-spacing:.14em;margin-top:1px}
 .me{margin-left:auto;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);padding:5px 11px;border-radius:99px;font-size:13px;font-weight:700}
 .me .av{width:21px;height:21px;border-radius:50%;background:#fff;color:var(--line-d);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
-.statuschip{margin-top:15px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.18);padding:8px 14px;border-radius:99px;font-size:13.5px;font-weight:700}
-.statuschip .pip{width:9px;height:9px;border-radius:50%;background:#fff}
+/* 現在の状態カード（REA-178: 状態ラベル+現場情報+主CTA+補助CTAを1枚に統合） */
+.statecard{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:17px 16px;margin-bottom:18px;box-shadow:0 2px 10px rgba(20,24,27,.04)}
+.statecard.live{border-color:#bfebd2;background:#f6fdf9}
+.slb{display:inline-block;font-size:11px;font-weight:800;padding:3px 11px;border-radius:99px;background:#eef1f3;color:var(--sub)}
+.slb.in{background:var(--okbg);color:var(--ok)}
+.shl{font-size:17px;font-weight:800;line-height:1.4;margin-top:9px}
+.selapsed{font-size:26px;font-weight:800;color:var(--line-d);font-variant-numeric:tabular-nums;line-height:1.2;margin-top:3px}
+.selapsed small{font-size:12px;color:var(--sub);font-weight:700;margin-left:7px}
+.saddr{font-size:12.5px;color:#185fa5;margin-top:6px;display:flex;align-items:center;gap:5px;text-decoration:none}
+.ssub{font-size:12px;color:var(--sub);margin-top:3px}
+.btn-danger{background:var(--warn);color:#fff;box-shadow:0 6px 16px rgba(232,69,60,.28)}
+.btn-danger:hover,.btn-danger:active{background:var(--warn-d)}
+.btn-ghost{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;border:1px solid var(--bd);border-radius:14px;padding:13px;font-size:14px;font-weight:800;background:#fff;color:var(--ink);cursor:pointer;margin-top:9px;font-family:inherit}
+.nextrow{display:flex;align-items:center;gap:11px}
+.nextrow .nd{background:#fff7e6;color:#b45309;border-radius:12px;padding:7px 10px;font-size:12px;font-weight:800;text-align:center;line-height:1.3;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.nextrow .nm2{font-size:14px;font-weight:800}
+.nextrow .ns{font-size:11.5px;color:var(--sub);font-weight:600;display:block;margin-top:1px}
+.nextrow .ncal{margin-left:auto;flex:0 0 auto;border:1px solid var(--bd);background:#fff;border-radius:11px;padding:8px 11px;font-size:11px;font-weight:800;color:#185fa5;text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.card.qk3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;padding:14px}
+.qk3 button{border:1px solid var(--bd);background:#fff;border-radius:14px;padding:13px 4px;font-size:12px;font-weight:800;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit}
+.qk3 button svg{color:var(--line-d)}
+.todo-mute{background:#f1f4f2;color:var(--sub)}
 .body{padding:18px 16px 0}
 .view{display:none}.view.on{display:block}
 .sec{font-size:12px;font-weight:800;color:var(--sub);letter-spacing:.05em;margin:2px 4px 10px;display:flex;align-items:center;gap:7px}
@@ -98,18 +118,22 @@ input,select,textarea{font-size:16px !important}
       <div class="me"><span class="av" id="av">…</span><span id="who">読込中</span></div>
     </div>
     <div id="envbadge" style="display:none;margin-top:8px;font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:99px;background:#fff7e6;color:#b45309;border:1px solid #f5d98a">テスト中 (dev)</div>
-    <div class="statuschip" id="chip"><span class="pip"></span><span id="chipText">状態を確認中…</span></div>
   </div>
 
   <div class="body">
-    <!-- ホーム：今日の仕事を見る画面（REA-174 再設計） -->
+    <!-- ホーム（REA-178 v2: 状態カード / 今日やること / 次の予定 / クイック導線） -->
     <div class="view on" id="v-home">
-      <div class="sec">今日のやること</div>
+      <div class="statecard" id="stateCard"><div class="spin" style="padding:8px">確認中…</div></div>
+      <div class="sec">今日やること</div>
       <div class="card" id="todayCard" style="padding:12px"><div class="spin" style="padding:12px">確認中…</div></div>
-      <div class="sec">クイックメニュー</div>
-      <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px">
-        <button class="btn btn-scan" onclick="openPunch('home')" style="padding:16px 8px;font-size:15px">打刻する</button>
-        <button class="btn" onclick="go('sites')" style="background:#EAF4FF;color:#2563EB;padding:16px 8px;font-size:15px">現場を探す</button>
+      <div id="nextWrap" style="display:none">
+        <div class="sec">次の予定</div>
+        <div class="card" id="nextCard" style="padding:13px 15px"></div>
+      </div>
+      <div class="card qk3">
+        <button onclick="go('sites')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>現場を探す</button>
+        <button onclick="go('report')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>日報を書く</button>
+        <button onclick="go('chat')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>チャットを見る</button>
       </div>
     </div>
 
@@ -308,68 +332,138 @@ async function loadMe(){
     var r=await fetch(BASE+"/genba-me",{method:"POST",headers:H,body:JSON.stringify({id_token:idToken})});
     var j=await r.json();
     var eb=document.getElementById('envbadge'); if(eb) eb.style.display=(j.env==='dev')?'inline-block':'none';
-    if(!j.ok){ if(j.error==='worker_not_found'){ showReg(j.companies||[]); setChip('未登録'); var tc=document.getElementById('todayCard'); if(tc)tc.innerHTML='<div class="spin" style="padding:12px">登録すると今日のやることが表示されます</div>'; } return; }
+    if(!j.ok){ if(j.error==='worker_not_found'){ showReg(j.companies||[]); var sc=document.getElementById('stateCard'); if(sc)sc.innerHTML='<div class="spin" style="padding:8px">登録すると今日の状態が表示されます</div>'; var tc=document.getElementById('todayCard'); if(tc)tc.innerHTML='<div class="spin" style="padding:12px">登録すると今日のやることが表示されます</div>'; } return; }
     document.getElementById('reg').style.display='none';
-    var t=j.today;
-    if(t.status==='in') setChip('在場中　'+Math.floor(t.elapsed_min/60)+'時間'+(t.elapsed_min%60)+'分');
-    else if(t.status==='out') setChip('退場済　'+fmtT(t.first_in)+' → '+fmtT(t.last_out));
-    else setChip('本日まだ打刻なし');
     document.getElementById('m-ninku').textContent=j.month.ninku;
     document.getElementById('m-hours').textContent=j.month.hours;
     document.getElementById('m-days').textContent=j.month.days;
     renderHist(j.history);
     lastMe=j; renderToday(j);
     if(schedCache===null){ loadTodaySched(); }
-  }catch(e){ setChip('状態取得エラー'); }
+  }catch(e){ var sc=document.getElementById('stateCard'); if(sc)sc.innerHTML='<div class="spin" style="padding:8px">状態を取得できませんでした。通信を確認して開き直してください</div>'; }
 }
-function setChip(txt){document.getElementById('chipText').textContent=txt;}
-/* ---- 今日のやること（REA-172）---- */
+/* ---- ホーム（REA-178 v2: 状態カード / 今日やること / 次の予定）---- */
 var lastMe=null, schedCache=null;
+var ICON_QR='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h.01M17 21h4v-4"/></svg>';
 function jstToday(){return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});}
-function nextSched(){
+function schedToday(){
   if(!schedCache)return null;
-  var today=jstToday(), best=null;
+  var today=jstToday(), hit=null;
+  schedCache.forEach(function(s){
+    (s.days||[]).forEach(function(d){ if(d.status!=='declined'&&d.date===today&&!hit)hit=s; });
+  });
+  return hit;
+}
+function nextSchedAfter(after){
+  if(!schedCache)return null;
+  var best=null;
   schedCache.forEach(function(s){
     (s.days||[]).forEach(function(d){
-      if(d.status==='declined'||d.date<today)return;
-      if(!best||d.date<best.date)best={date:d.date,site:s.site,trade:s.trade};
+      if(d.status==='declined'||d.date<=after)return;
+      if(!best||d.date<best.date)best={date:d.date,sched:s};
     });
   });
   return best;
 }
+function siteById(id){var hit=null;((lastMe&&lastMe.sites)||[]).forEach(function(x){if(x.id===id)hit=x;});return hit;}
+function lastUnreported(){ // 打刻ありで日報未提出の直近日（本日含む）
+  var best=null;
+  ((lastMe&&lastMe.history)||[]).forEach(function(r){
+    if(!r.first_in||r.has_report)return;
+    if(!best||r.date>best)best=r.date;
+  });
+  return best;
+}
+function fmtMD2(ymd){return parseInt(ymd.slice(5,7))+'/'+parseInt(ymd.slice(8,10))+'('+wd(ymd)+')';}
+function addrLink(a){return '<a class="saddr" href="https://maps.google.com/?q='+encodeURIComponent(a)+'" target="_blank" rel="noreferrer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>'+esc(a)+'（地図）</a>';}
 function todoRow(cls,txt,act){
-  var acts={scan:"openPunch('home');scanQR()",punch:"openPunch('home')",report:"go('report')",sched:"go('sites')"};
+  var acts={scan:"openPunch('home');scanQR()",punch:"openPunch('home')",report:"go('report')",sched:"go('sites')",chat:"go('chat')"};
   var click=act?(' onclick="'+acts[act]+'" style="cursor:pointer"'):'';
   return '<div class="todo '+cls+'"'+click+'>'+txt+(act?'<span class="ar">›</span>':'')+'</div>';
 }
+function renderStateCard(j){
+  var el=document.getElementById('stateCard'); if(!el)return;
+  var t=(j&&j.today)||{};
+  var html='';
+  if(t.status==='in'){ // B. 在場中
+    var s=siteById(t.site_id); var nm=(s&&s.name)||'現場';
+    html='<span class="slb in">在場中</span>'
+      +'<div class="shl">'+esc(nm)+'に在場中</div>'
+      +'<div class="selapsed">'+Math.floor((t.elapsed_min||0)/60)+'時間'+((t.elapsed_min||0)%60)+'分<small>'+fmtT(t.first_in)+' 入場</small></div>'
+      +(s&&s.address?addrLink(s.address):'')
+      +'<button class="btn btn-danger" style="margin-top:13px;padding:15px;font-size:15px" onclick="openPunch(\'home\');scanQR()">'+ICON_QR+' 退場する（QR読取）</button>'
+      +'<button class="btn-ghost" onclick="go(\'report\')">日報を書く</button>';
+    el.className='statecard live';
+  }else if(t.status==='out'){ // Bの亜種: 退場済（主CTAなし）
+    html='<span class="slb">退場済</span>'
+      +'<div class="shl">本日の作業は終了しました</div>'
+      +'<div style="font-size:15px;font-weight:800;margin-top:5px;font-variant-numeric:tabular-nums">'+fmtT(t.first_in)+' → '+fmtT(t.last_out)+'</div>'
+      +'<div class="ssub">おつかれさまでした。再入場する場合はQRを読み取り直してください</div>'
+      +'<button class="btn-ghost" onclick="go(\'report\')">日報を書く</button>';
+    el.className='statecard';
+  }else if(schedCache===null){ // 予定の読込前は確定させない
+    html='<div class="spin" style="padding:8px">確認中…</div>';
+    el.className='statecard';
+  }else{
+    var sc=schedToday();
+    if(sc){ // A. 未入場
+      var st=siteById(sc.site_id); var nm2=sc.site||(st&&st.name)||'現場';
+      html='<span class="slb">未入場</span>'
+        +'<div class="shl">本日の現場があります</div>'
+        +'<div style="font-size:15px;font-weight:800;margin-top:7px">'+esc(nm2)+(sc.trade?'<span style="font-size:12px;color:var(--sub);font-weight:600;margin-left:8px">'+esc(sc.trade)+'</span>':'')+'</div>'
+        +(st&&st.address?addrLink(st.address):'')
+        +'<button class="btn btn-scan" style="margin-top:13px;padding:15px;font-size:15px" onclick="openPunch(\'home\');scanQR()">'+ICON_QR+' QRで入場する</button>'
+        +(st?'<button class="btn-ghost" onclick="openSite(\''+st.id+'\')">現場詳細を見る</button>':'');
+    }else{ // C. 空状態
+      html='<span class="slb">予定なし</span>'
+        +'<div class="shl" style="color:var(--sub)">本日の予定はありません</div>'
+        +'<div class="ssub">予定外の現場に入る場合は、現場を選んでQRで打刻できます</div>'
+        +'<button class="btn btn-scan" style="margin-top:13px;padding:15px;font-size:15px" onclick="go(\'sites\')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> 現場を探す</button>'
+        +'<button class="btn-ghost" onclick="go(\'my\')">マイページを見る</button>';
+    }
+    el.className='statecard';
+  }
+  el.innerHTML=html;
+}
+function renderNext(){
+  var w=document.getElementById('nextWrap'), el=document.getElementById('nextCard'); if(!w||!el)return;
+  var n=nextSchedAfter(jstToday());
+  if(!n){ w.style.display='none'; return; }
+  var s=n.sched;
+  w.style.display='block';
+  el.innerHTML='<div class="nextrow"><span class="nd">'+parseInt(n.date.slice(5,7))+'/'+parseInt(n.date.slice(8,10))+'<br>('+wd(n.date)+')</span>'
+    +'<span style="min-width:0"><span class="nm2">'+esc(s.site||'現場')+'</span>'+(s.trade?'<span class="ns">'+esc(s.trade)+'</span>':'')+'</span>'
+    +'<a class="ncal" href="'+gcalUrl(s.site||'現場',s.start_date,s.end_date)+'" target="_blank" rel="noreferrer">＋ カレンダー</a></div>';
+}
 function renderToday(j){
+  renderStateCard(j);
+  renderNext();
   var el=document.getElementById('todayCard'); if(!el)return;
   var today=jstToday();
   var t=(j&&j.today)||{};
-  var th=null;(j&&j.history||[]).forEach(function(r){if(r.date===today)th=r;});
   var hasPunch=(t.status==='in'||t.status==='out');
+  var th=null;(j&&j.history||[]).forEach(function(r){if(r.date===today)th=r;});
   var hasReport=!!(th&&th.has_report);
+  var unrep=lastUnreported();
   // 日報未提出のあいだは下部ナビの「日報」タブに赤ドットを出す
   var navRep=document.getElementById('nav-report');
-  if(navRep)navRep.classList.toggle('alert',hasPunch&&!hasReport);
+  if(navRep)navRep.classList.toggle('alert',!!unrep);
   var html='';
+  if(unrep){ // 未提出日報は全状態で最優先の警告行
+    html+=todoRow('todo-warn','未提出日報を書く（'+(unrep===today?'本日分':fmtMD2(unrep))+'・写真と作業内容）','report');
+  }
   if(t.status==='in'){
-    html+=todoRow('todo-ok','在場中（'+Math.floor((t.elapsed_min||0)/60)+'時間'+((t.elapsed_min||0)%60)+'分）。退場するときはここから打刻','punch');
-  }else if(!hasPunch){
-    html+=todoRow('todo-info','本日はまだ打刻がありません。現場に着いたらQRを読み取り','scan');
+    html+=todoRow('todo-info','退場するときはQRで退場打刻','scan');
+  }else if(!hasPunch&&schedToday()){
+    html+=todoRow('todo-info','入場する（現場に着いたらQR読取）','scan');
   }
-  if(hasPunch&&!hasReport){
-    html+=todoRow('todo-warn','本日の日報が未提出です。写真と作業内容を提出','report');
+  if(nextSchedAfter(today)){
+    html+=todoRow('todo-mute','次の現場を確認','sched');
   }
-  var ns=nextSched();
-  if(ns){
-    var lbl=(ns.date===today?'今日':parseInt(ns.date.slice(5,7))+'/'+parseInt(ns.date.slice(8,10))+'('+wd(ns.date)+')');
-    html+=todoRow('todo-amber','次の予定：'+lbl+'　'+esc(ns.site||'')+(ns.trade?('（'+esc(ns.trade)+'）'):''),'sched');
+  if(!html){
+    html=todoRow('todo-ok',(hasPunch&&hasReport)?'今日の打刻・日報は完了しています。おつかれさまです':'今日のやることはありません');
   }
-  if(!html&&hasPunch&&hasReport){
-    html=todoRow('todo-ok','今日の打刻・日報は完了しています。おつかれさまです');
-  }
-  el.innerHTML=html||'<div class="spin" style="padding:12px">今日の予定はありません</div>';
+  el.innerHTML=html;
   renderSitesTab();
   fillMy();
 }
