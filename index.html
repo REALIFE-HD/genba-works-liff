@@ -58,6 +58,14 @@ svg{display:block}
 .nav button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:var(--sub);cursor:pointer;font-weight:700}
 .nav button.on{color:var(--line)}
 .spin{text-align:center;color:var(--sub);font-size:13px;padding:24px}
+/* 今日のやること（REA-172 Phase 3: 現在地と次にやることをホームで示す） */
+.todo{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:14px;font-size:13.5px;font-weight:700;margin-bottom:9px;cursor:pointer;line-height:1.45}
+.todo:last-child{margin-bottom:0}
+.todo .ar{margin-left:auto;opacity:.55;font-size:17px;flex:0 0 auto}
+.todo-warn{background:#fdecea;color:var(--warn-d)}
+.todo-amber{background:#fff7e6;color:#b45309}
+.todo-info{background:#eef6ff;color:#185fa5}
+.todo-ok{background:var(--okbg);color:var(--ok);cursor:default}
 </style>
 </head>
 <body>
@@ -74,6 +82,8 @@ svg{display:block}
 
   <div class="body">
     <div class="view on" id="v-punch">
+      <div class="sec">今日のやること</div>
+      <div class="card" id="todayCard" style="padding:12px"><div class="spin" style="padding:12px">確認中…</div></div>
       <div class="sec"><span class="n">1</span>現場のQRコードを読み取る</div>
       <div class="card">
         <div class="site-box pending" id="siteBox">
@@ -235,7 +245,7 @@ async function loadMe(){
     var r=await fetch(BASE+"/genba-me",{method:"POST",headers:H,body:JSON.stringify({id_token:idToken})});
     var j=await r.json();
     var eb=document.getElementById('envbadge'); if(eb) eb.style.display=(j.env==='dev')?'inline-block':'none';
-    if(!j.ok){ if(j.error==='worker_not_found'){ showReg(j.companies||[]); setChip('未登録'); } return; }
+    if(!j.ok){ if(j.error==='worker_not_found'){ showReg(j.companies||[]); setChip('未登録'); var tc=document.getElementById('todayCard'); if(tc)tc.innerHTML='<div class="spin" style="padding:12px">登録すると今日のやることが表示されます</div>'; } return; }
     document.getElementById('reg').style.display='none';
     var t=j.today;
     if(t.status==='in') setChip('在場中　'+Math.floor(t.elapsed_min/60)+'時間'+(t.elapsed_min%60)+'分');
@@ -245,9 +255,63 @@ async function loadMe(){
     document.getElementById('m-hours').textContent=j.month.hours;
     document.getElementById('m-days').textContent=j.month.days;
     renderHist(j.history);
+    lastMe=j; renderToday(j);
+    if(schedCache===null){ loadTodaySched(); }
   }catch(e){ setChip('状態取得エラー'); }
 }
 function setChip(txt){document.getElementById('chipText').textContent=txt;}
+/* ---- 今日のやること（REA-172）---- */
+var lastMe=null, schedCache=null;
+function jstToday(){return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});}
+function nextSched(){
+  if(!schedCache)return null;
+  var today=jstToday(), best=null;
+  schedCache.forEach(function(s){
+    (s.days||[]).forEach(function(d){
+      if(d.status==='declined'||d.date<today)return;
+      if(!best||d.date<best.date)best={date:d.date,site:s.site,trade:s.trade};
+    });
+  });
+  return best;
+}
+function todoRow(cls,txt,act){
+  var acts={scan:'scanQR()',report:"go('report')",sched:"go('sched')"};
+  var click=act?(' onclick="'+acts[act]+'"'):'';
+  return '<div class="todo '+cls+'"'+click+'>'+txt+(act?'<span class="ar">›</span>':'')+'</div>';
+}
+function renderToday(j){
+  var el=document.getElementById('todayCard'); if(!el)return;
+  var today=jstToday();
+  var t=(j&&j.today)||{};
+  var th=null;(j&&j.history||[]).forEach(function(r){if(r.date===today)th=r;});
+  var hasPunch=(t.status==='in'||t.status==='out');
+  var hasReport=!!(th&&th.has_report);
+  var html='';
+  if(t.status==='in'){
+    html+=todoRow('todo-ok','在場中（'+Math.floor((t.elapsed_min||0)/60)+'時間'+((t.elapsed_min||0)%60)+'分）。退場時に打刻を忘れずに');
+  }else if(!hasPunch){
+    html+=todoRow('todo-info','本日はまだ打刻がありません。現場に着いたらQRを読み取り','scan');
+  }
+  if(hasPunch&&!hasReport){
+    html+=todoRow('todo-warn','本日の日報が未提出です。写真と作業内容を提出','report');
+  }
+  var ns=nextSched();
+  if(ns){
+    var lbl=(ns.date===today?'今日':parseInt(ns.date.slice(5,7))+'/'+parseInt(ns.date.slice(8,10))+'('+wd(ns.date)+')');
+    html+=todoRow('todo-amber','次の予定：'+lbl+'　'+esc(ns.site||'')+(ns.trade?('（'+esc(ns.trade)+'）'):''),'sched');
+  }
+  if(!html&&hasPunch&&hasReport){
+    html=todoRow('todo-ok','今日の打刻・日報は完了しています。おつかれさまです');
+  }
+  el.innerHTML=html||'<div class="spin" style="padding:12px">今日の予定はありません</div>';
+}
+async function loadTodaySched(){
+  try{
+    var r=await fetch(BASE+'/genba-schedule',{method:'POST',headers:H,body:JSON.stringify({mode:'list_mine',id_token:idToken})});
+    var j=await r.json();
+    if(j.ok){schedCache=j.schedules||[];if(lastMe)renderToday(lastMe);}
+  }catch(e){}
+}
 function renderHist(h){
   var el=document.getElementById('histCard');
   if(!h||!h.length){el.innerHTML='<div class="spin">まだ記録がありません</div>';return;}
