@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>現場WORKS 打刻</title>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+:root{--line:#06c755;--line-d:#05a847;--ink:#14181b;--sub:#6b7280;--bg:#f2f5f7;--card:#fff;--bd:#e6eaee;--warn:#e8453c;--warn-d:#cf3a31;--ok:#0a8f4f;--okbg:#e7f8ef}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,sans-serif;background:var(--bg);color:var(--ink)}
+svg{display:block}
+.wrap{max-width:460px;margin:0 auto;padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+.hdr{background:linear-gradient(135deg,#06c755,#04a648);color:#fff;padding:20px 18px 22px;border-radius:0 0 24px 24px;box-shadow:0 8px 22px rgba(6,199,85,.25)}
+.hdr .top{display:flex;align-items:center;gap:10px}
+.logo{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800}
+.brand{font-weight:800;font-size:16px;line-height:1.1}.brand small{display:block;font-weight:600;font-size:9.5px;opacity:.85;letter-spacing:.14em;margin-top:1px}
+.me{margin-left:auto;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);padding:5px 11px;border-radius:99px;font-size:13px;font-weight:700}
+.me .av{width:21px;height:21px;border-radius:50%;background:#fff;color:var(--line-d);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+/* 現在の状態カード（REA-178: 状態ラベル+現場情報+主CTA+補助CTAを1枚に統合） */
+.statecard{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:17px 16px;margin-bottom:18px;box-shadow:0 2px 10px rgba(20,24,27,.04)}
+.statecard.live{border-color:#bfebd2;background:#f6fdf9}
+.slb{display:inline-block;font-size:11px;font-weight:800;padding:3px 11px;border-radius:99px;background:#eef1f3;color:var(--sub)}
+.slb.in{background:var(--okbg);color:var(--ok)}
+.shl{font-size:17px;font-weight:800;line-height:1.4;margin-top:9px}
+.selapsed{font-size:26px;font-weight:800;color:var(--line-d);font-variant-numeric:tabular-nums;line-height:1.2;margin-top:3px}
+.selapsed small{font-size:12px;color:var(--sub);font-weight:700;margin-left:7px}
+.saddr{font-size:12.5px;color:#185fa5;margin-top:6px;display:flex;align-items:center;gap:5px;text-decoration:none}
+.ssub{font-size:12px;color:var(--sub);margin-top:3px}
+.btn-danger{background:var(--warn);color:#fff;box-shadow:0 6px 16px rgba(232,69,60,.28)}
+.btn-danger:hover,.btn-danger:active{background:var(--warn-d)}
+.btn-ghost{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;border:1px solid var(--bd);border-radius:14px;padding:13px;font-size:14px;font-weight:800;background:#fff;color:var(--ink);cursor:pointer;margin-top:9px;font-family:inherit}
+.nextrow{display:flex;align-items:center;gap:11px}
+.nextrow .nd{background:#fff7e6;color:#b45309;border-radius:12px;padding:7px 10px;font-size:12px;font-weight:800;text-align:center;line-height:1.3;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.nextrow .nm2{font-size:14px;font-weight:800}
+.nextrow .ns{font-size:11.5px;color:var(--sub);font-weight:600;display:block;margin-top:1px}
+.nextrow .ncal{margin-left:auto;flex:0 0 auto;border:1px solid var(--bd);background:#fff;border-radius:11px;padding:8px 11px;font-size:11px;font-weight:800;color:#185fa5;text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.card.qk3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;padding:14px}
+.qk3 button{border:1px solid var(--bd);background:#fff;border-radius:14px;padding:13px 4px;font-size:12px;font-weight:800;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit}
+.qk3 button svg{color:var(--line-d)}
+.todo-mute{background:#f1f4f2;color:var(--sub)}
+/* 打刻Stepper（REA-180: QR読取→入場→退場の現在地を常時表示） */
+.stepper{display:flex;align-items:center;padding:2px 6px 10px}
+.step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto;width:72px}
+.step .c{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#e9edf0;color:#aab2b9}
+.step.on .c{background:var(--line);color:#fff}
+.step.done .c{background:var(--okbg);color:var(--ok)}
+.step .l{font-size:9.5px;font-weight:800;color:#aab2b9;white-space:nowrap}
+.step.on .l,.step.done .l{color:var(--line-d)}
+.sbar{flex:1;height:3px;border-radius:2px;background:#e9edf0;margin:0 2px 15px}
+.sbar.done{background:var(--line)}
+.remind{background:#fff7e6;border:1px solid #f5d98a;border-radius:14px;padding:12px 14px;font-size:12px;font-weight:700;color:#b45309;display:flex;gap:8px;align-items:flex-start;line-height:1.55;margin-bottom:18px}
+.sum{display:flex;align-items:center;justify-content:center;gap:14px;padding:6px 0 2px;font-variant-numeric:tabular-nums}
+.sum .t{text-align:center}
+.sum .v{font-size:20px;font-weight:800}
+.sum .l{font-size:10px;color:var(--sub);font-weight:700}
+.sum .ar{color:#cbd2d8}
+/* チャット定型文（REA-182）・日報補助ボタン（REA-181） */
+.qtxt{flex:0 0 auto;border:1px solid var(--bd);background:#fff;border-radius:99px;padding:9px 14px;font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;white-space:nowrap;font-family:inherit}
+.qtxt:active{background:#f1f4f2}
+.tool2{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--bd);background:#fff;border-radius:12px;padding:12px 6px;font-size:12.5px;font-weight:800;color:var(--ink);cursor:pointer;font-family:inherit}
+.tool2:disabled{color:#aab2b9}
+.tool2.rec{background:#fdecea;border-color:#f6c8c4;color:#cf3a31}
+.body{padding:18px 16px 0}
+.view{display:none}.view.on{display:block}
+.sec{font-size:12px;font-weight:800;color:var(--sub);letter-spacing:.05em;margin:2px 4px 10px;display:flex;align-items:center;gap:7px}
+.sec .n{width:20px;height:20px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:18px;margin-bottom:18px;box-shadow:0 2px 10px rgba(20,24,27,.04)}
+.site-box{display:flex;align-items:center;gap:14px}
+.site-ic{width:52px;height:52px;border-radius:15px;background:#f0f3f5;display:flex;align-items:center;justify-content:center;flex:0 0 auto;color:var(--sub)}
+.site-box.done .site-ic{background:var(--okbg);color:var(--ok)}
+.site-meta .lbl{font-size:12px;color:var(--sub);font-weight:600}
+.site-meta .nm{font-size:18px;font-weight:800;margin-top:2px;line-height:1.25}
+.site-box.pending .nm{color:var(--sub);font-weight:700;font-size:15px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:16px;padding:20px;font-size:18px;font-weight:800;cursor:pointer;transition:transform .08s,filter .15s}
+.btn:active{transform:scale(.985)}
+/* 主CTAはグリーンに統一（REA-174: 黒CTAは世界観から浮くため廃止） */
+.btn-scan{background:var(--line);color:#fff;box-shadow:0 6px 16px rgba(6,199,85,.3)}
+.btn-scan:hover,.btn-scan:active{background:var(--line-d)}
+.punch-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-in{background:var(--line);color:#fff;flex-direction:column;gap:6px;padding:22px 10px;box-shadow:0 6px 16px rgba(6,199,85,.3)}
+.btn-out{background:var(--warn);color:#fff;flex-direction:column;gap:6px;padding:22px 10px;box-shadow:0 6px 16px rgba(232,69,60,.28)}
+.btn-in .t,.btn-out .t{font-size:17px}
+.btn:disabled{background:#e9edf0;color:#aab2b9;box-shadow:none}
+.hint{font-size:11.5px;color:var(--sub);text-align:center;margin-top:10px}
+.status{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid var(--bd);border-radius:16px;padding:14px 16px;font-size:13.5px;line-height:1.6;box-shadow:0 2px 10px rgba(20,24,27,.04)}
+.status .dot{width:9px;height:9px;border-radius:50%;background:var(--sub);margin-top:5px;flex:0 0 auto}
+.status.ok .dot{background:var(--ok)}.status.err .dot{background:var(--warn)}.status.busy .dot{background:#f59e0b;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.status .msg{white-space:pre-wrap;word-break:break-all;font-weight:600}.status.err .msg{color:var(--warn-d)}.status.ok .msg{color:var(--ok)}
+.uid{font-size:12px;background:#fff8e8;border:1px solid #ffe1a3;border-radius:14px;padding:12px 14px;margin-top:12px;word-break:break-all;display:none;line-height:1.6}
+.foot{text-align:center;font-size:11px;color:#9aa4ad;margin-top:18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px 8px;text-align:center;box-shadow:0 2px 10px rgba(20,24,27,.04)}
+.stat .v{font-size:24px;font-weight:800}.stat .l{font-size:11px;color:var(--sub);font-weight:600;margin-top:3px}
+.day{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #eef1f3}.day:last-child{border:0}
+.day .d{width:50px;font-weight:800;font-size:14px}.day .pip{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.day .tm{font-variant-numeric:tabular-nums;font-size:13px;color:var(--sub)}
+.day .rep{margin-left:auto;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:99px}
+.rep-y{background:var(--okbg);color:var(--ok)}.rep-n{background:#fdecea;color:var(--warn)}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;background:#fff;border-top:1px solid var(--bd);display:flex;height:calc(66px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);z-index:10}
+.nav button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;color:var(--sub);cursor:pointer;font-weight:700;position:relative;white-space:nowrap;padding:0 2px}
+.nav button.on{color:var(--line)}
+.navdot{position:absolute;top:9px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;background:var(--warn);border:2px solid #fff;display:none}
+.nav button.alert .navdot{display:block}
+/* iOSはフォーカス時にfont-size<16pxの入力欄へ自動ズームするため、入力系は16px固定 */
+input,select,textarea{font-size:16px !important}
+.spin{text-align:center;color:var(--sub);font-size:13px;padding:24px}
+/* 今日のやること（REA-172 Phase 3: 現在地と次にやることをホームで示す） */
+.todo{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:14px;font-size:13.5px;font-weight:700;margin-bottom:9px;cursor:pointer;line-height:1.45}
+.todo:last-child{margin-bottom:0}
+.todo .ar{margin-left:auto;opacity:.55;font-size:17px;flex:0 0 auto}
+.todo-warn{background:#fdecea;color:var(--warn-d)}
+.todo-amber{background:#fff7e6;color:#b45309}
+.todo-info{background:#eef6ff;color:#185fa5}
+.todo-ok{background:var(--okbg);color:var(--ok);cursor:default}
+/* 現場一覧・現場詳細（REA-174: 現場を選んでからその現場のデータを見る） */
+.siterow{display:flex;align-items:center;gap:12px;padding:14px 2px;border-bottom:1px solid #eef1f3;cursor:pointer}
+.siterow:last-child{border:0}
+.siterow .ic{width:40px;height:40px;border-radius:12px;background:#f0f3f5;color:var(--sub);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.siterow .nm{font-weight:800;font-size:15px;line-height:1.35}
+.siterow .ar{margin-left:auto;color:#cbd2d8;font-size:19px;flex:0 0 auto}
+.sitetag{display:inline-block;font-size:10px;font-weight:800;padding:2.5px 8px;border-radius:99px;margin-left:7px;vertical-align:1.5px;white-space:nowrap}
+.tag-in{background:var(--okbg);color:var(--ok)}
+.tag-next{background:#fff7e6;color:#b45309}
+.backbtn{display:inline-flex;align-items:center;gap:4px;border:0;background:none;color:var(--sub);font-size:13.5px;font-weight:700;padding:6px 4px 10px;cursor:pointer}
+.pgrid{display:flex;gap:10px;flex-wrap:wrap}
+.pgrid .ph{position:relative;width:92px;height:92px;border-radius:12px;overflow:hidden;border:1px solid var(--bd)}
+.pgrid .ph img{width:100%;height:100%;object-fit:cover}
+.pgrid .ph .tag{position:absolute;left:0;right:0;bottom:0;height:18px;line-height:18px;text-align:center;font-size:9.5px;font-weight:800;color:#fff}
+.gcal{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;color:#185fa5;text-decoration:none;margin-top:7px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="top">
+      <div class="logo">現</div>
+      <div class="brand">現場WORKS<small>GENBA WORKS</small></div>
+      <div class="me"><span class="av" id="av">…</span><span id="who">読込中</span></div>
+    </div>
+    <div id="envbadge" style="display:none;margin-top:8px;font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:99px;background:#fff7e6;color:#b45309;border:1px solid #f5d98a">テスト中 (dev)</div>
+  </div>
+
+  <div class="body">
+    <!-- ホーム（REA-178 v2: 状態カード / 今日やること / 次の予定 / クイック導線） -->
+    <div class="view on" id="v-home">
+      <div class="statecard" id="stateCard"><div class="spin" style="padding:8px">確認中…</div></div>
+      <div class="sec">今日やること</div>
+      <div class="card" id="todayCard" style="padding:12px"><div class="spin" style="padding:12px">確認中…</div></div>
+      <div id="nextWrap" style="display:none">
+        <div class="sec">次の予定</div>
+        <div class="card" id="nextCard" style="padding:13px 15px"></div>
+      </div>
+      <div class="card qk3">
+        <button onclick="go('sites')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>現場を探す</button>
+        <button onclick="go('report')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>日報を書く</button>
+        <button onclick="go('chat')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>チャットを見る</button>
+      </div>
+    </div>
+
+    <!-- 打刻：QR→入場→退場（REA-180: Stepper・状態別ボタン制御・退場忘れ防止） -->
+    <div class="view" id="v-punch">
+      <button class="backbtn" onclick="closePunch()">‹ 戻る</button>
+      <div class="stepper" id="stepper"></div>
+      <div class="card">
+        <div class="site-box pending" id="siteBox">
+          <div class="site-ic" id="siteIc"></div>
+          <div class="site-meta"><div class="lbl">現場</div><div class="nm" id="siteName">QR未読取</div></div>
+        </div>
+        <div class="selapsed" id="punchElapsed" style="display:none;text-align:center;padding:8px 0 0"></div>
+        <div style="height:14px"></div>
+        <button class="btn btn-scan" onclick="scanQR()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h.01M17 21h4v-4"/></svg> <span id="scanLbl">QRコードを読み取る</span></button>
+      </div>
+      <div class="remind" id="punchRemind" style="display:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>17時を過ぎています。退場打刻を忘れていませんか？</div>
+      <div class="card" id="punchCard">
+        <div class="punch-row">
+          <button class="btn btn-in" id="inBtn" onclick="punch('in')" disabled><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v13"/><path d="M6 11l6 6 6-6"/></svg><span class="t">入場</span></button>
+          <button class="btn btn-out" id="outBtn" onclick="punch('out')" disabled><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V7"/><path d="M6 13l6-6 6 6"/></svg><span class="t">退場</span></button>
+        </div>
+        <div class="hint" id="hint">先にQRコードを読み取ってください</div>
+      </div>
+      <div class="card" id="outSummary" style="display:none">
+        <div class="sum" id="sumRow"></div>
+        <div class="hint" style="margin-top:8px">おつかれさまでした。記録済みです。再入場する場合はQRを読み取り直してください</div>
+        <button class="btn btn-scan" onclick="go('report')" style="margin-top:12px;padding:14px;font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg> 日報を書く</button>
+      </div>
+      <div class="status" id="status"><span class="dot"></span><span class="msg" id="msg">初期化中…</span></div>
+      <div class="uid" id="uid"></div>
+      <div class="foot">公式LINEミニアプリ ・ 打刻はSupabaseへ記録</div>
+    </div>
+
+    <!-- マイページ：出勤実績・人工・履歴（REA-174 再設計、旧「履歴」タブ） -->
+    <div class="view" id="v-my">
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:16px">
+        <span class="av" id="myAv" style="width:44px;height:44px;border-radius:50%;background:var(--line);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800">…</span>
+        <span style="min-width:0"><span id="myName" style="display:block;font-weight:800;font-size:16px">読込中</span><span style="font-size:12px;color:var(--sub)">現場WORKS 職人アカウント</span></span>
+      </div>
+      <div class="sec">今月の出面</div>
+      <div class="stats">
+        <div class="stat"><div class="v" id="m-ninku">–</div><div class="l">人工</div></div>
+        <div class="stat"><div class="v" id="m-hours">–</div><div class="l">稼働h</div></div>
+        <div class="stat"><div class="v" id="m-days">–</div><div class="l">出勤日</div></div>
+      </div>
+      <div class="sec">日別履歴</div>
+      <div class="card" id="histCard"><div class="spin">読込中…</div></div>
+    </div>
+
+    <div class="view" id="v-report">
+      <div class="sec">本日の日報</div>
+      <div class="card" id="repSiteCard" style="display:none">
+        <div style="font-size:12px;color:var(--sub);font-weight:700;margin-bottom:10px">現場（本日の打刻が無いため選択してください）</div>
+        <select id="repSite" style="width:100%;padding:13px;border:1px solid var(--bd);border-radius:12px;font:inherit;font-size:14px;background:#fff"><option value="">現場を選択…</option></select>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;color:var(--sub);font-weight:700;margin-bottom:10px">写真 <span style="font-weight:500">（サムネイルのラベルをタップで 施工前/施工中/完了 を切替）</span></div>
+        <div id="thumbs" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+        <!-- REA-174: カメラ起動と端末内アルバム選択を分ける（capture属性の有無） -->
+        <div style="margin-top:10px;display:flex;gap:10px">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border:1.5px dashed var(--line);color:var(--line-d);background:#f3fcf6;border-radius:14px;padding:15px 8px;font-size:13.5px;font-weight:700;cursor:pointer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>カメラで撮影
+            <input type="file" accept="image/*" capture="environment" multiple hidden onchange="addPhotos(event)">
+          </label>
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border:1.5px dashed #94a3b8;color:#475569;background:#f8fafc;border-radius:14px;padding:15px 8px;font-size:13.5px;font-weight:700;cursor:pointer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>アルバムから選択
+            <input type="file" accept="image/*" multiple hidden onchange="addPhotos(event)">
+          </label>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;color:var(--sub);font-weight:700;margin-bottom:10px">作業内容</div>
+        <textarea id="repBody" placeholder="例）2階廊下のコーティング下塗りまで完了。乾燥待ち。脱衣所の床に目地割れを1箇所確認、写真添付。" style="width:100%;min-height:130px;border:1px solid var(--bd);border-radius:12px;padding:13px;font:inherit;font-size:14px;resize:none"></textarea>
+        <!-- REA-181: 音声入力とAI下書き（音声は非対応端末で非表示） -->
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="tool2" id="voiceBtn" onclick="toggleVoice()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg><span id="voiceLbl">音声で入力</span></button>
+          <button class="tool2" id="aiBtn" onclick="aiDraft()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.9 2.6L22.5 18.5l-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9z"/></svg><span id="aiLbl">AIで下書きを作成</span></button>
+        </div>
+      </div>
+      <button class="btn btn-in" id="repSubmit" onclick="showRepConfirm()" style="flex-direction:row">提出内容を確認する</button>
+      <!-- REA-181: 提出前確認 -->
+      <div class="card" id="repConfirm" style="display:none;margin-top:14px;border-color:#bfebd2">
+        <div style="font-size:12px;font-weight:800;color:var(--sub);margin-bottom:8px">提出内容の確認</div>
+        <div id="repcSummary" style="font-size:13px;line-height:1.9"></div>
+        <button class="btn btn-in" id="repcGo" onclick="submitReport()" style="flex-direction:row;margin-top:12px">この内容で提出する</button>
+        <button class="btn-ghost" onclick="hideRepConfirm()">修正する</button>
+      </div>
+      <div class="status" id="repStatus" style="margin-top:14px"><span class="dot"></span><span class="msg" id="repMsg">写真と作業内容を入力して提出してください。</span></div>
+      <div class="foot">提出後は監督が内容を確認します</div>
+    </div>
+
+    <div class="view" id="v-chat">
+      <div class="sec">現場チャット</div>
+      <div id="chatSite" style="margin:0 4px 10px;color:var(--sub);font-size:12px;font-weight:600">…</div>
+      <div id="chatBox" style="background:#fff;border:1px solid var(--bd);border-radius:16px;padding:12px;min-height:280px;max-height:54vh;overflow:auto;display:flex;flex-direction:column;gap:9px"><div class="spin">読込中…</div></div>
+      <!-- REA-182: 定型文（タップで入力欄へ。送信前に編集可能） -->
+      <div style="display:flex;gap:7px;overflow-x:auto;margin-top:10px;padding-bottom:2px">
+        <button class="qtxt" onclick="quickFill('chatInput',this.textContent)">到着しました</button>
+        <button class="qtxt" onclick="quickFill('chatInput',this.textContent)">完了しました</button>
+        <button class="qtxt" onclick="quickFill('chatInput',this.textContent)">材料が不足しています</button>
+        <button class="qtxt" onclick="quickFill('chatInput',this.textContent)">確認お願いします</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="chatInput" placeholder="メッセージを入力" style="flex:1;padding:13px;border:1px solid var(--bd);border-radius:12px;font:inherit;font-size:15px" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn btn-in" style="width:auto;padding:13px 18px;flex-direction:row" onclick="sendChat()">送信</button>
+      </div>
+    </div>
+
+    <!-- 現場：現場を探して入るハブ（REA-174 再設計） -->
+    <div class="view" id="v-sites">
+      <div class="sec">現場</div>
+      <div class="relwrap" style="position:relative;margin-bottom:10px">
+        <input id="siteQ" placeholder="現場名・住所で検索" oninput="renderSitesTab()"
+          style="width:100%;padding:13px 13px 13px 38px;border:1px solid var(--bd);border-radius:12px;font:inherit;background:#fff">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9aa4ad" stroke-width="2" stroke-linecap="round" style="position:absolute;left:13px;top:14px"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </div>
+      <div id="siteChips" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px"></div>
+      <div id="siteList"><div class="spin">読込中…</div></div>
+    </div>
+
+    <!-- 現場詳細：その現場のすべてを集約（概要/写真/図面/チャット/日報） -->
+    <div class="view" id="v-site">
+      <button class="backbtn" onclick="stopSiteChat();go('sites')">‹ 現場一覧へ</button>
+      <div id="siteHead" style="margin:0 4px 12px"></div>
+      <div id="siteTabs" style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto"></div>
+      <div class="spane" id="sp-ov"></div>
+      <div class="spane" id="sp-photo" style="display:none"></div>
+      <div class="spane" id="sp-plan" style="display:none"></div>
+      <div class="spane" id="sp-chat" style="display:none">
+        <div id="sChatBox" style="background:#fff;border:1px solid var(--bd);border-radius:16px;padding:12px;min-height:260px;max-height:50vh;overflow:auto;display:flex;flex-direction:column;gap:9px"><div class="spin">読込中…</div></div>
+        <div style="display:flex;gap:7px;overflow-x:auto;margin-top:10px;padding-bottom:2px">
+          <button class="qtxt" onclick="quickFill('sChatInput',this.textContent)">到着しました</button>
+          <button class="qtxt" onclick="quickFill('sChatInput',this.textContent)">完了しました</button>
+          <button class="qtxt" onclick="quickFill('sChatInput',this.textContent)">材料が不足しています</button>
+          <button class="qtxt" onclick="quickFill('sChatInput',this.textContent)">確認お願いします</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <input id="sChatInput" placeholder="メッセージを入力" style="flex:1;padding:13px;border:1px solid var(--bd);border-radius:12px;font:inherit" onkeydown="if(event.key==='Enter')sendSiteChat()">
+          <button class="btn btn-in" style="width:auto;padding:13px 18px;flex-direction:row" onclick="sendSiteChat()">送信</button>
+        </div>
+      </div>
+      <div class="spane" id="sp-report" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div id="reg" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:30;overflow:auto">
+  <div style="max-width:460px;margin:0 auto;padding:22px 16px 30px">
+    <div style="text-align:center;margin:8px 0 18px">
+      <div style="font-weight:800;font-size:19px">はじめての方の登録</div>
+      <div style="color:var(--sub);font-size:13px;margin-top:5px">会社と担当工事を選ぶだけ。承認は不要です。</div>
+    </div>
+    <div class="card">
+      <label style="display:block;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:7px">所属会社（協力会社）</label>
+      <select id="reg-company" style="width:100%;padding:14px;border:1px solid var(--bd);border-radius:12px;font:inherit;font-size:15px;background:#fff"></select>
+      <div style="height:14px"></div>
+      <label style="display:block;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:7px">担当工事</label>
+      <select id="reg-trade" style="width:100%;padding:14px;border:1px solid var(--bd);border-radius:12px;font:inherit;font-size:15px;background:#fff"></select>
+      <div style="height:14px"></div>
+      <label style="display:block;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:7px">お名前（任意）</label>
+      <input id="reg-name" style="width:100%;padding:13px;border:1px solid var(--bd);border-radius:12px;font:inherit;font-size:15px" placeholder="未入力ならLINEの名前を使用">
+    </div>
+    <button class="btn btn-in" id="reg-btn" onclick="register()">この内容で登録して始める</button>
+    <div class="status" id="reg-status" style="margin-top:14px;display:none"><span class="dot"></span><span class="msg" id="reg-msg"></span></div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="on" id="nav-home" onclick="go('home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>ホーム</button>
+  <button id="nav-sites" onclick="go('sites')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>現場</button>
+  <button id="nav-report" onclick="go('report')"><span class="navdot"></span><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>日報</button>
+  <button id="nav-chat" onclick="go('chat')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>チャット</button>
+  <button id="nav-my" onclick="go('my')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>マイページ</button>
+</div>
+
+<script>
+var LIFF_ID="2010459645-nZrNO9J0";
+var BASE="https://cdrobplodkxyagzyzvpq.supabase.co/functions/v1";
+var ANON="sb_publishable_cEnH7Mug8B7O8JtgSIauMw_MjlVxhW5";
+var idToken=null, qr=null, myName='';
+var pendingPunch=null; // {type,key} 同一打刻の再送で同じidempotency_keyを使い二重打刻を防止
+function newKey(){ return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+'-'+Math.random().toString(16).slice(2)); }
+var TRADES=["コーティング","塗装","内装","足場","電気","設備","防水","左官","解体","清掃","その他"];
+var H={"content-type":"application/json","apikey":ANON,"Authorization":"Bearer "+ANON};
+var ICON_PIN='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>';
+var ICON_CHK='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+var ICON_NAV='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>';
+function navUrl(a){return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(a);}
+
+function setStatus(m,k){var s=document.getElementById('status');s.className='status'+(k?' '+k:'');document.getElementById('msg').textContent=m;}
+function showUid(u){var el=document.getElementById('uid');el.style.display='block';el.innerHTML='未登録のようです。下記の LINE userId を監督に伝えて登録してください：<br><b>'+u+'</b>';}
+/* REA-180: 状態別のボタン制御。送信中のみ setButtons(false) で一時無効化 */
+function setButtons(on){
+  if(!on){document.getElementById('inBtn').disabled=true;document.getElementById('outBtn').disabled=true;document.getElementById('hint').textContent='送信中…';return;}
+  updatePunchUI();
+}
+function renderStepper(){
+  var el=document.getElementById('stepper'); if(!el)return;
+  var t=(lastMe&&lastMe.today)||{};
+  var scanned=!!qr, inDone=(t.status==='in'||t.status==='out'), outDone=(t.status==='out');
+  function st(state,num,label){return '<div class="step'+(state?' '+state:'')+'"><span class="c">'+(state==='done'?'✓':num)+'</span><span class="l">'+label+'</span></div>';}
+  el.innerHTML=st((scanned||inDone)?'done':'on','1','QR読取')
+    +'<span class="sbar'+((scanned||inDone)?' done':'')+'"></span>'
+    +st(inDone?'done':(scanned?'on':''),'2',inDone?('入場 '+fmtT(t.first_in)):'入場')
+    +'<span class="sbar'+(inDone?' done':'')+'"></span>'
+    +st(outDone?'done':(t.status==='in'?'on':''),'3',outDone?('退場 '+fmtT(t.last_out)):'退場');
+}
+function updatePunchUI(){
+  var inB=document.getElementById('inBtn'); if(!inB)return;
+  var t=(lastMe&&lastMe.today)||{};
+  var outB=document.getElementById('outBtn'), pc=document.getElementById('punchCard'), os=document.getElementById('outSummary');
+  var hint=document.getElementById('hint'), rem=document.getElementById('punchRemind'), pe=document.getElementById('punchElapsed'), sl=document.getElementById('scanLbl');
+  renderStepper();
+  // 退場忘れ防止（在場中で17時以降）
+  var hourJST=parseInt(new Date().toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',hour12:false}),10);
+  if(rem)rem.style.display=(t.status==='in'&&hourJST>=17)?'flex':'none';
+  // 在場中は経過時間を強調
+  if(pe){
+    if(t.status==='in'){pe.style.display='block';pe.innerHTML=Math.floor((t.elapsed_min||0)/60)+'時間'+((t.elapsed_min||0)%60)+'分<small>在場中 ・ '+fmtT(t.first_in)+' 入場</small>';}
+    else pe.style.display='none';
+  }
+  // 退場済（QR再読取まで）はサマリー＋日報導線に切替
+  if(t.status==='out'&&!qr){
+    if(pc)pc.style.display='none';
+    if(os){
+      os.style.display='block';
+      var mins=Math.max(0,(new Date(t.last_out)-new Date(t.first_in))/60000);
+      var sr=document.getElementById('sumRow');
+      if(sr)sr.innerHTML='<span class="t"><div class="v">'+fmtT(t.first_in)+'</div><div class="l">入場</div></span><span class="ar">→</span><span class="t"><div class="v">'+fmtT(t.last_out)+'</div><div class="l">退場</div></span><span class="ar">＝</span><span class="t"><div class="v">'+(Math.round(mins/6)/10)+'h</div><div class="l">滞在</div></span>';
+    }
+    if(sl)sl.textContent='再入場する場合はQRを読み取る';
+    return;
+  }
+  if(pc)pc.style.display='block';
+  if(os)os.style.display='none';
+  if(sl)sl.textContent=qr?'別のQRを読み直す':'QRコードを読み取る';
+  if(!qr){ // QR未読取: 両方無効
+    inB.disabled=true; outB.disabled=true;
+    hint.textContent='先にQRコードを読み取ってください';
+  }else if(t.status==='in'){ // 在場中: 退場のみ
+    inB.disabled=true; outB.disabled=false;
+    hint.textContent='帰るときは「退場」を押してください';
+  }else{ // 読取済・未入場（退場済からの再入場含む）: 入場のみ
+    inB.disabled=false; outB.disabled=true;
+    hint.textContent='「入場」を押してください（未入場のため退場は押せません）';
+  }
+}
+function setSite(n,done){document.getElementById('siteName').textContent=n;document.getElementById('siteBox').className='site-box '+(done?'done':'pending');document.getElementById('siteIc').innerHTML=done?ICON_CHK:ICON_PIN;}
+function go(v){
+  ['home','punch','sites','site','report','chat','my'].forEach(function(x){
+    var vw=document.getElementById('v-'+x);if(vw)vw.classList.toggle('on',v===x);
+    var nb=document.getElementById('nav-'+x);if(nb)nb.classList.toggle('on',v===x);
+  });
+  // 現場詳細はナビ上「現場」の配下として扱う
+  if(v==='site'){var nb=document.getElementById('nav-sites');if(nb)nb.classList.add('on');}
+  // 打刻は独立タブ廃止（REA-174: 5タブ化）。遷移元（ホーム/現場詳細）の配下として扱う
+  if(v==='punch'){var pb=document.getElementById(punchBack==='site'?'nav-sites':'nav-home');if(pb)pb.classList.add('on');}
+  if(v!=='site'){stopSiteChat();}
+  if(v==='chat'){startChat();}else{stopChat();}
+  if(v==='sites'){renderSitesTab();}
+}
+var punchBack='home';
+function openPunch(from){punchBack=(from==='site'&&curSite)?'site':'home';go('punch');updatePunchUI();}
+function closePunch(){go(punchBack==='site'?'site':'home');}
+function fmtT(iso){if(!iso)return'–';return new Date(iso).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});}
+
+async function boot(){
+  document.getElementById('siteIc').innerHTML=ICON_PIN;
+  try{
+    await liff.init({liffId:LIFF_ID});
+    if(!liff.isLoggedIn()){liff.login();return;}
+    var p=await liff.getProfile();
+    myName=p.displayName||'';
+    document.getElementById('who').textContent=p.displayName;
+    document.getElementById('av').textContent=(p.displayName||'？').trim().charAt(0);
+    idToken=liff.getIDToken();
+    setStatus("現場のQRコードを読み取ってください。","");
+    loadMe();
+  }catch(e){setStatus("LIFF初期化エラー: "+(e&&e.message?e.message:e),"err");}
+}
+async function loadMe(){
+  try{
+    var r=await fetch(BASE+"/genba-me",{method:"POST",headers:H,body:JSON.stringify({id_token:idToken})});
+    var j=await r.json();
+    var eb=document.getElementById('envbadge'); if(eb) eb.style.display=(j.env==='dev')?'inline-block':'none';
+    if(!j.ok){ if(j.error==='worker_not_found'){ showReg(j.companies||[]); var sc=document.getElementById('stateCard'); if(sc)sc.innerHTML='<div class="spin" style="padding:8px">登録すると今日の状態が表示されます</div>'; var tc=document.getElementById('todayCard'); if(tc)tc.innerHTML='<div class="spin" style="padding:12px">登録すると今日のやることが表示されます</div>'; } return; }
+    document.getElementById('reg').style.display='none';
+    document.getElementById('m-ninku').textContent=j.month.ninku;
+    document.getElementById('m-hours').textContent=j.month.hours;
+    document.getElementById('m-days').textContent=j.month.days;
+    renderHist(j.history);
+    lastMe=j; renderToday(j);
+    if(schedCache===null){ loadTodaySched(); }
+  }catch(e){ var sc=document.getElementById('stateCard'); if(sc)sc.innerHTML='<div class="spin" style="padding:8px">状態を取得できませんでした。通信を確認して開き直してください</div>'; }
+}
+/* ---- ホーム（REA-178 v2: 状態カード / 今日やること / 次の予定）---- */
+var lastMe=null, schedCache=null;
+var ICON_QR='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h.01M17 21h4v-4"/></svg>';
+function jstToday(){return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});}
+function schedToday(){
+  if(!schedCache)return null;
+  var today=jstToday(), hit=null;
+  schedCache.forEach(function(s){
+    (s.days||[]).forEach(function(d){ if(d.status!=='declined'&&d.date===today&&!hit)hit=s; });
+  });
+  return hit;
+}
+function nextSchedAfter(after){
+  if(!schedCache)return null;
+  var best=null;
+  schedCache.forEach(function(s){
+    (s.days||[]).forEach(function(d){
+      if(d.status==='declined'||d.date<=after)return;
+      if(!best||d.date<best.date)best={date:d.date,sched:s};
+    });
+  });
+  return best;
+}
+function siteById(id){var hit=null;((lastMe&&lastMe.sites)||[]).forEach(function(x){if(x.id===id)hit=x;});return hit;}
+function lastUnreported(){ // 打刻ありで日報未提出の直近日（本日含む）
+  var best=null;
+  ((lastMe&&lastMe.history)||[]).forEach(function(r){
+    if(!r.first_in||r.has_report)return;
+    if(!best||r.date>best)best=r.date;
+  });
+  return best;
+}
+function fmtMD2(ymd){return parseInt(ymd.slice(5,7))+'/'+parseInt(ymd.slice(8,10))+'('+wd(ymd)+')';}
+/* REA-182: チャット未読（genba-me v16 の unread を表示。閲覧すると genba-chat が既読化） */
+function unreadTotal(){var n=0;((lastMe&&lastMe.unread)||[]).forEach(function(u){n+=u.count||0;});return n;}
+function unreadFor(id){var n=0;((lastMe&&lastMe.unread)||[]).forEach(function(u){if(u.site_id===id)n=u.count||0;});return n;}
+function clearUnread(siteId){
+  if(!lastMe||!lastMe.unread||!lastMe.unread.length)return;
+  var before=lastMe.unread.length;
+  lastMe.unread=lastMe.unread.filter(function(u){return u.site_id!==siteId;});
+  if(lastMe.unread.length!==before)renderToday(lastMe);
+}
+function addrLink(a){return '<a class="saddr" href="https://maps.google.com/?q='+encodeURIComponent(a)+'" target="_blank" rel="noreferrer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>'+esc(a)+'（地図）</a>';}
+function todoRow(cls,txt,act){
+  var acts={scan:"openPunch('home');scanQR()",punch:"openPunch('home')",out:"openPunch('home');if(!qr){scanQR();}else{var ob=document.getElementById('outBtn');if(ob)ob.scrollIntoView({behavior:'smooth',block:'center'});}",report:"go('report')",sched:"go('sites')",chat:"go('chat')"};
+  var click=act?(' onclick="'+acts[act]+'" style="cursor:pointer"'):'';
+  return '<div class="todo '+cls+'"'+click+'>'+txt+(act?'<span class="ar">›</span>':'')+'</div>';
+}
+function renderStateCard(j){
+  var el=document.getElementById('stateCard'); if(!el)return;
+  var t=(j&&j.today)||{};
+  var html='';
+  if(t.status==='in'){ // B. 在場中
+    var s=siteById(t.site_id); var nm=(s&&s.name)||'現場';
+    html='<span class="slb in">在場中</span>'
+      +'<div class="shl">'+esc(nm)+'に在場中</div>'
+      +'<div class="selapsed">'+Math.floor((t.elapsed_min||0)/60)+'時間'+((t.elapsed_min||0)%60)+'分<small>'+fmtT(t.first_in)+' 入場</small></div>'
+      +(s&&s.address?addrLink(s.address):'')
+      +'<button class="btn btn-danger" style="margin-top:13px;padding:15px;font-size:15px" onclick="openPunch(\'home\');scanQR()">'+ICON_QR+' 退場する（QR読取）</button>'
+      +'<button class="btn-ghost" onclick="go(\'report\')">日報を書く</button>';
+    el.className='statecard live';
+  }else if(t.status==='out'){ // Bの亜種: 退場済（主CTAなし）
+    html='<span class="slb">退場済</span>'
+      +'<div class="shl">本日の作業は終了しました</div>'
+      +'<div style="font-size:15px;font-weight:800;margin-top:5px;font-variant-numeric:tabular-nums">'+fmtT(t.first_in)+' → '+fmtT(t.last_out)+'</div>'
+      +'<div class="ssub">おつかれさまでした。再入場する場合はQRを読み取り直してください</div>'
+      +'<button class="btn-ghost" onclick="go(\'report\')">日報を書く</button>';
+    el.className='statecard';
+  }else if(schedCache===null){ // 予定の読込前は確定させない
+    html='<div class="spin" style="padding:8px">確認中…</div>';
+    el.className='statecard';
+  }else{
+    var sc=schedToday();
+    if(sc){ // A. 未入場
+      var st=siteById(sc.site_id); var nm2=sc.site||(st&&st.name)||'現場';
+      html='<span class="slb">未入場</span>'
+        +'<div class="shl">本日の現場があります</div>'
+        +'<div style="font-size:15px;font-weight:800;margin-top:7px">'+esc(nm2)+(sc.trade?'<span style="font-size:12px;color:var(--sub);font-weight:600;margin-left:8px">'+esc(sc.trade)+'</span>':'')+'</div>'
+        +(st&&st.address?addrLink(st.address):'')
+        +'<button class="btn btn-scan" style="margin-top:13px;padding:15px;font-size:15px" onclick="openPunch(\'home\');scanQR()">'+ICON_QR+' QRで入場する</button>'
+        +(st?'<button class="btn-ghost" onclick="openSite(\''+st.id+'\')">現場詳細を見る</button>':'');
+    }else{ // C. 空状態
+      html='<span class="slb">予定なし</span>'
+        +'<div class="shl" style="color:var(--sub)">本日の予定はありません</div>'
+        +'<div class="ssub">予定外の現場に入る場合は、現場を選んでQRで打刻できます</div>'
+        +'<button class="btn btn-scan" style="margin-top:13px;padding:15px;font-size:15px" onclick="go(\'sites\')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> 現場を探す</button>'
+        +'<button class="btn-ghost" onclick="go(\'my\')">マイページを見る</button>';
+    }
+    el.className='statecard';
+  }
+  el.innerHTML=html;
+}
+function renderNext(){
+  var w=document.getElementById('nextWrap'), el=document.getElementById('nextCard'); if(!w||!el)return;
+  var n=nextSchedAfter(jstToday());
+  if(!n){ w.style.display='none'; return; }
+  var s=n.sched;
+  w.style.display='block';
+  el.innerHTML='<div class="nextrow"><span class="nd">'+parseInt(n.date.slice(5,7))+'/'+parseInt(n.date.slice(8,10))+'<br>('+wd(n.date)+')</span>'
+    +'<span style="min-width:0"><span class="nm2">'+esc(s.site||'現場')+'</span>'+(s.trade?'<span class="ns">'+esc(s.trade)+'</span>':'')+'</span>'
+    +'<a class="ncal" href="'+gcalUrl(s.site||'現場',s.start_date,s.end_date)+'" target="_blank" rel="noreferrer">＋ カレンダー</a></div>';
+}
+function renderToday(j){
+  renderStateCard(j);
+  renderNext();
+  updatePunchUI();
+  var el=document.getElementById('todayCard'); if(!el)return;
+  var today=jstToday();
+  var t=(j&&j.today)||{};
+  var hasPunch=(t.status==='in'||t.status==='out');
+  var th=null;(j&&j.history||[]).forEach(function(r){if(r.date===today)th=r;});
+  var hasReport=!!(th&&th.has_report);
+  var unrep=lastUnreported();
+  // 日報未提出のあいだは下部ナビの「日報」タブに赤ドットを出す
+  var navRep=document.getElementById('nav-report');
+  if(navRep)navRep.classList.toggle('alert',!!unrep);
+  var html='';
+  if(unrep){ // 未提出日報は全状態で最優先の警告行
+    html+=todoRow('todo-warn','未提出日報を書く（'+(unrep===today?'本日分':fmtMD2(unrep))+'・写真と作業内容）','report');
+  }
+  if(t.status==='in'){
+    html+=todoRow('todo-warn','退場打刻を忘れずに（QR→退場ボタン）','out');
+  }else if(!hasPunch&&schedToday()){
+    html+=todoRow('todo-info','入場する（現場に着いたらQR読取）','scan');
+  }
+  if(nextSchedAfter(today)){
+    html+=todoRow('todo-mute','次の現場を確認','sched');
+  }
+  var un=unreadTotal();
+  if(un){ // 未読ゼロなら非表示（REA-178 優先度5）
+    html+=todoRow('todo-info','チャット未読を確認（'+un+'件）','chat');
+  }
+  if(!html){
+    html=todoRow('todo-ok',(hasPunch&&hasReport)?'今日の打刻・日報は完了しています。おつかれさまです':'今日のやることはありません');
+  }
+  el.innerHTML=html;
+  renderSitesTab();
+  fillMy();
+}
+function fillMy(){
+  var n=(lastMe&&lastMe.worker&&lastMe.worker.name)||myName||'';
+  var e1=document.getElementById('myName'); if(e1&&n)e1.textContent=n;
+  var e2=document.getElementById('myAv'); if(e2&&n)e2.textContent=n.trim().charAt(0);
+}
+/* ---- 現場タブ：検索・フィルター・状態別カード（REA-174 再設計）---- */
+var curSite=null, siteFilter='all', doneOpen=false;
+var SITE_FILTERS=[['all','全部'],['today','今日'],['in','在場中'],['sched','予定'],['done','完了']];
+function groupDot(c){return '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+c+';margin-right:6px;vertical-align:.5px"></span>';}
+var GROUP_LABEL={in:groupDot('#0a8f4f')+'在場中',today:groupDot('#f59e0b')+'今日',tomorrow:groupDot('#2563eb')+'明日',sched:groupDot('#94a3b8')+'予定あり',other:groupDot('#cbd2d8')+'その他の現場',done:groupDot('#94a3b8')+'完了した現場'};
+function fmtMD(ymd){return parseInt(ymd.slice(5,7))+'/'+parseInt(ymd.slice(8,10))+'('+wd(ymd)+')';}
+function siteNextSched(siteId){
+  if(!schedCache)return null;
+  var today=jstToday(), best=null;
+  schedCache.forEach(function(s){
+    if(s.site_id!==siteId)return;
+    (s.days||[]).forEach(function(d){ if(d.status==='declined'||d.date<today)return; if(!best||d.date<best.date)best={date:d.date}; });
+  });
+  return best;
+}
+function workersToday(siteId){ var n=0; ((lastMe&&lastMe.today_counts)||[]).forEach(function(x){if(x.site_id===siteId)n=x.workers;}); return n; }
+function siteMeta(s){
+  var t=(lastMe&&lastMe.today)||{};
+  var inNow=(t.site_id===s.id&&t.status==='in');
+  var ns=siteNextSched(s.id);
+  var today=jstToday();
+  var d=new Date(today+'T00:00:00+09:00'); d.setDate(d.getDate()+1);
+  var tomorrow=d.toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});
+  var trade=null; (schedCache||[]).forEach(function(x){if(x.site_id===s.id&&x.trade&&!trade)trade=x.trade;});
+  var g;
+  if(s.status==='completed')g='done';
+  else if(inNow)g='in';
+  else if(ns&&ns.date===today)g='today';
+  else if(ns&&ns.date===tomorrow)g='tomorrow';
+  else if(ns)g='sched';
+  else g='other';
+  return {inNow:inNow,next:ns,trade:trade,workers:workersToday(s.id),group:g};
+}
+function siteCard(s,m){
+  var badge='';
+  if(m.inNow)badge='<span class="sitetag tag-in">在場中</span>';
+  else if(m.next)badge='<span class="sitetag tag-next">'+(m.next.date===jstToday()?'今日':fmtMD(m.next.date))+'</span>';
+  var t=(lastMe&&lastMe.today)||{};
+  var sub=[];
+  if(s.address)sub.push(esc(s.address));
+  if(m.trade)sub.push(esc(m.trade));
+  if(m.workers)sub.push('職人 '+m.workers+'人');
+  if(m.inNow&&t.first_in)sub.push(fmtT(t.first_in)+'〜');
+  return '<div class="card siterow" style="margin-bottom:10px;padding:14px;border-bottom:1px solid var(--bd)" onclick="openSite(\''+s.id+'\')">'
+    +'<span class="ic">'+ICON_PIN+'</span>'
+    +'<span style="min-width:0;flex:1"><span class="nm">'+esc(s.name)+badge+'</span>'
+    +(sub.length?'<span style="display:block;font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.5">'+sub.join('　')+'</span>':'')
+    +'</span>'
+    // REA-179: ナビ導線は独立ボタン（カード本体タップ=現場詳細と分離）
+    +(s.address
+      ?'<a href="'+navUrl(s.address)+'" target="_blank" rel="noreferrer" aria-label="ナビ" onclick="event.stopPropagation()" style="flex:0 0 auto;width:40px;height:40px;border-radius:12px;border:1px solid #cfe3fa;background:#eef6ff;color:#2563eb;display:flex;align-items:center;justify-content:center">'+ICON_NAV+'</a>'
+      :'<span class="ar">›</span>')
+    +'</div>';
+}
+function renderSitesTab(){
+  var el=document.getElementById('siteList'); if(!el)return;
+  var chips=document.getElementById('siteChips');
+  if(chips){
+    var ch='';
+    SITE_FILTERS.forEach(function(f){
+      ch+='<button onclick="siteFilter=\''+f[0]+'\';renderSitesTab()" style="border:0;border-radius:99px;padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer;'
+        +(siteFilter===f[0]?'background:var(--ink);color:#fff':'background:#fff;color:var(--sub);box-shadow:inset 0 0 0 1px var(--bd)')+'">'+f[1]+'</button>';
+    });
+    chips.innerHTML=ch;
+  }
+  var sites=(lastMe&&lastMe.sites)||[];
+  if(!sites.length){ el.innerHTML='<div class="spin">現場がありません</div>'; return; }
+  var qEl=document.getElementById('siteQ'); var q=((qEl&&qEl.value)||'').trim().toLowerCase();
+  var groups={in:[],today:[],tomorrow:[],sched:[],other:[],done:[]};
+  sites.forEach(function(s){
+    if(q){ var hay=(s.name+' '+(s.address||'')).toLowerCase(); if(hay.indexOf(q)<0)return; }
+    var m=siteMeta(s);
+    if(siteFilter==='today'&&m.group!=='today'&&!m.inNow)return;
+    if(siteFilter==='in'&&!m.inNow)return;
+    if(siteFilter==='sched'&&['today','tomorrow','sched'].indexOf(m.group)<0)return;
+    if(siteFilter==='done'&&m.group!=='done')return;
+    groups[m.group].push([s,m]);
+  });
+  var html='';
+  ['in','today','tomorrow','sched','other','done'].forEach(function(g){
+    var arr=groups[g]; if(!arr.length)return;
+    html+='<div class="sec" style="margin-top:6px">'+GROUP_LABEL[g]+'</div>';
+    if(g==='done'&&siteFilter!=='done'&&!doneOpen){
+      html+='<button style="width:100%;padding:13px;text-align:center;font-size:13px;font-weight:700;color:var(--sub);background:#fff;border:1px dashed var(--bd);border-radius:16px;cursor:pointer;margin-bottom:10px" onclick="doneOpen=true;renderSitesTab()">'+arr.length+'件を見る</button>';
+      return;
+    }
+    arr.forEach(function(x){ html+=siteCard(x[0],x[1]); });
+  });
+  el.innerHTML=html||'<div class="spin">該当する現場がありません</div>';
+}
+function gcalUrl(siteName,start,end){
+  // Googleカレンダーの終日予定は終了日exclusive
+  var d=new Date(end+'T00:00:00+09:00'); d.setDate(d.getDate()+1);
+  var e2=d.toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'}).replace(/-/g,'');
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('現場WORKS '+siteName)
+    +'&dates='+start.replace(/-/g,'')+'/'+e2+'&details='+encodeURIComponent('現場WORKSで登録した予定');
+}
+/* ---- 現場詳細：概要/写真/図面/チャット/日報 の5タブ ---- */
+var SITE_TABS=[['ov','概要'],['photo','写真'],['plan','図面・資料'],['chat','チャット'],['report','日報']];
+var curTab='ov';
+function openSite(id){
+  var s=null; ((lastMe&&lastMe.sites)||[]).forEach(function(x){if(x.id===id)s=x;});
+  if(!s)return;
+  curSite=s; curTab='ov';
+  renderSiteHead(); showPane('ov');
+  go('site');
+}
+function renderSiteHead(){
+  var m=siteMeta(curSite);
+  var badge=m.inNow?'<span class="sitetag tag-in">在場中</span>':(m.next?'<span class="sitetag tag-next">'+(m.next.date===jstToday()?'今日':fmtMD(m.next.date))+' 予定</span>':'');
+  document.getElementById('siteHead').innerHTML=
+    '<div style="font-weight:800;font-size:18px;line-height:1.35">'+esc(curSite.name)+badge+'</div>'
+    +(curSite.address
+      ?'<a href="https://maps.google.com/?q='+encodeURIComponent(curSite.address)+'" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:#185fa5;text-decoration:none;margin-top:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>'+esc(curSite.address)+'（地図）</a>'
+       +'<div><a href="'+navUrl(curSite.address)+'" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px;margin-top:9px;background:#eef6ff;color:#2563eb;border:1px solid #cfe3fa;border-radius:11px;padding:8px 13px;font-size:12px;font-weight:800;text-decoration:none">'+ICON_NAV+'ナビを開始</a></div>'
+      :'');
+}
+function renderSiteTabs(){
+  var html='';
+  SITE_TABS.forEach(function(t){
+    html+='<button onclick="showPane(\''+t[0]+'\')" style="flex:0 0 auto;border:0;border-radius:99px;padding:10px 17px;font-size:13px;font-weight:700;cursor:pointer;'
+      +(curTab===t[0]?'background:var(--line);color:#fff':'background:#fff;color:var(--sub);box-shadow:inset 0 0 0 1px var(--bd)')+'">'+t[1]+'</button>';
+  });
+  document.getElementById('siteTabs').innerHTML=html;
+}
+function showPane(t){
+  curTab=t; renderSiteTabs();
+  ['ov','photo','plan','chat','report'].forEach(function(x){ var p=document.getElementById('sp-'+x); if(p)p.style.display=(x===t?'block':'none'); });
+  if(t==='ov')renderPaneOv();
+  if(t==='photo')renderPanePhoto();
+  if(t==='plan')renderPanePlan();
+  if(t==='chat')startSiteChat(); else stopSiteChat();
+  if(t==='report')renderPaneReport();
+}
+function renderPaneOv(){
+  var el=document.getElementById('sp-ov'); if(!el||!curSite)return;
+  var id=curSite.id, html='';
+  var t=(lastMe&&lastMe.today)||{};
+  if(t.site_id===id&&t.status==='in')
+    html+='<div class="todo todo-ok" style="margin-bottom:12px">この現場に在場中（'+Math.floor((t.elapsed_min||0)/60)+'時間'+((t.elapsed_min||0)%60)+'分）</div>';
+  var w=workersToday(id);
+  if(w)html+='<div class="todo todo-info" style="cursor:default;margin-bottom:12px">今日の職人：'+w+'人</div>';
+  html+='<div style="margin-bottom:14px"><button class="btn btn-scan" onclick="openPunch(\'site\');scanQR()" style="padding:16px;font-size:15px">この現場で打刻する（QR読取）</button></div>';
+  html+='<div class="sec">工程（入らない日はタップで切替）</div><div class="card" style="padding:14px;margin-bottom:14px">';
+  var scheds=(schedCache||[]).filter(function(s){return s.site_id===id;});
+  if(!scheds.length)html+='<div class="spin" style="padding:6px">予定はありません</div>';
+  else scheds.forEach(function(s,i){
+    html+='<div'+(i>0?' style="margin-top:12px;border-top:1px solid #eef1f3;padding-top:12px"':'')+'>'
+      +'<div style="font-weight:800;font-size:14px">'+fmtMD(s.start_date)+'〜'+fmtMD(s.end_date)+(s.trade?('　'+esc(s.trade)):'')+(s.headcount?('　'+s.headcount+'名'):'')+'</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:8px">';
+    (s.days||[]).forEach(function(d){
+      var dec=d.status==='declined'; var bg=dec?'#fdecea':'#e7f8ef', col=dec?'#cf3a31':'#0a8f4f';
+      html+='<span onclick=\'toggleDay2("'+s.id+'","'+d.date+'",'+(!dec)+')\' style="cursor:pointer;font-size:13px;font-weight:700;padding:10px 13px;border-radius:11px;background:'+bg+';color:'+col+'">'+fmtMD(d.date)+(dec?' 入らない':'')+'</span>';
+    });
+    html+='</div><a class="gcal" href="'+gcalUrl(curSite.name,s.start_date,s.end_date)+'" target="_blank" rel="noreferrer">＋ スマホのカレンダーに追加</a></div>';
+  });
+  html+='</div>';
+  // REA-179: 最近の動き（写真/日報/チャットの入口を概要に集約）
+  var reps2=((lastMe&&lastMe.reports)||[]).filter(function(r){return r.site_id===id;});
+  var phN=0, lastRep=null;
+  reps2.forEach(function(r){phN+=(r.photos||[]).length; if(!lastRep||r.date>lastRep)lastRep=r.date;});
+  function mvRow(txt,pane){return '<div class="todo todo-mute" style="cursor:pointer" onclick="showPane(\''+pane+'\')">'+txt+'<span class="ar">›</span></div>';}
+  html+='<div class="sec">最近の動き</div><div class="card" style="padding:10px;margin-bottom:14px">'
+    +mvRow('報告写真 '+phN+'枚','photo')
+    +mvRow(lastRep?('日報 '+fmtMD(lastRep)+' 提出'):'日報 まだ提出がありません','report')
+    +mvRow('この現場のチャットを開く'+(unreadFor(id)?('（未読'+unreadFor(id)+'件）'):''),'chat')
+    +'</div>';
+  html+='<div class="sec">この現場に予定を登録</div><div class="card" style="padding:14px">'
+    +'<div style="display:flex;gap:10px"><div style="flex:1"><label style="display:block;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:6px">開始日</label><input type="date" id="sc2-start" style="width:100%;padding:11px;border:1px solid var(--bd);border-radius:11px;font:inherit"></div>'
+    +'<div style="flex:1"><label style="display:block;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:6px">終了日</label><input type="date" id="sc2-end" style="width:100%;padding:11px;border:1px solid var(--bd);border-radius:11px;font:inherit"></div></div>'
+    +'<div style="height:10px"></div>'
+    +'<div style="display:flex;gap:10px"><div style="flex:1"><label style="display:block;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:6px">担当工事</label><select id="sc2-trade" style="width:100%;padding:11px;border:1px solid var(--bd);border-radius:11px;font:inherit;background:#fff">'+TRADES.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select></div>'
+    +'<div style="flex:0 0 84px"><label style="display:block;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:6px">人数</label><input id="sc2-head" type="number" inputmode="numeric" style="width:100%;padding:11px;border:1px solid var(--bd);border-radius:11px;font:inherit"></div></div>'
+    +'<div style="height:12px"></div>'
+    +'<button class="btn btn-in" id="sc2-btn" onclick="createSched2()" style="flex-direction:row">予定を登録</button>'
+    +'<div class="status" id="sc2-status" style="margin-top:12px;display:none"><span class="dot"></span><span class="msg" id="sc2-msg"></span></div>'
+    +'</div>';
+  el.innerHTML=html;
+}
+async function toggleDay2(id,date,decline){
+  try{
+    await fetch(BASE+'/genba-schedule',{method:'POST',headers:H,body:JSON.stringify({mode:'toggle',id_token:idToken,schedule_id:id,date:date,decline:decline})});
+    await loadTodaySched(); renderPaneOv();
+  }catch(e){}
+}
+function sc2Status(m,k){var s=document.getElementById('sc2-status');if(!s)return;s.style.display='flex';s.className='status'+(k?' '+k:'');document.getElementById('sc2-msg').textContent=m;}
+async function createSched2(){
+  if(!curSite)return;
+  var start=document.getElementById('sc2-start').value, end=document.getElementById('sc2-end').value;
+  var trade=document.getElementById('sc2-trade').value, head=document.getElementById('sc2-head').value;
+  if(!start||!end){sc2Status('期間を入力してください。','err');return;}
+  if(start>end){sc2Status('終了日は開始日以降にしてください。','err');return;}
+  var btn=document.getElementById('sc2-btn'); if(btn)btn.disabled=true;
+  sc2Status('登録中…','busy');
+  try{
+    var body={mode:'create',id_token:idToken,site_id:curSite.id,trade:trade,start_date:start,end_date:end};
+    if(head)body.headcount=parseInt(head);
+    var r=await fetch(BASE+'/genba-schedule',{method:'POST',headers:H,body:JSON.stringify(body)});
+    var j=await r.json();
+    if(j.ok){ await loadTodaySched(); renderPaneOv(); }
+    else{ sc2Status('登録に失敗（'+(j.error||'')+'）','err'); }
+  }catch(e){ sc2Status('通信エラー','err'); }
+  finally{ var b=document.getElementById('sc2-btn'); if(b)b.disabled=false; }
+}
+function renderPanePhoto(){
+  var el=document.getElementById('sp-photo'); if(!el||!curSite)return;
+  var reps=((lastMe&&lastMe.reports)||[]).filter(function(r){return r.site_id===curSite.id;});
+  var phs=[]; reps.forEach(function(r){(r.photos||[]).forEach(function(p){phs.push({url:p.url,type:p.type,date:r.date});});});
+  var html='<div class="sec">報告写真（直近）</div><div class="card">';
+  if(!phs.length)html+='<div class="spin" style="padding:6px">まだ写真はありません。日報で提出した写真がここに表示されます。</div>';
+  else{
+    html+='<div class="pgrid">';
+    phs.slice(0,24).forEach(function(p){
+      html+='<span class="ph"><img src="'+p.url+'" loading="lazy"><span class="tag" style="background:'+(PHOTO_TYPE_COLORS[p.type]||'#0a8f4f')+'">'+(PHOTO_TYPE_LABELS[p.type]||'施工中')+' '+fmtMD(p.date)+'</span></span>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  el.innerHTML=html;
+}
+function renderPanePlan(){
+  var el=document.getElementById('sp-plan'); if(!el)return;
+  el.innerHTML='<div class="sec">図面・資料</div><div class="card" style="text-align:center;padding:28px 16px">'
+    +'<div style="margin-bottom:10px;color:#cbd2d8"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg></div>'
+    +'<div style="font-weight:700;font-size:14px;color:var(--sub)">図面はまだ登録されていません</div>'
+    +'<div style="font-size:12px;color:#9aa4ad;margin-top:6px">監督が管理画面から図面を登録すると、ここに表示されます（準備中）</div></div>';
+}
+function renderPaneReport(){
+  var el=document.getElementById('sp-report'); if(!el||!curSite)return;
+  var reps=((lastMe&&lastMe.reports)||[]).filter(function(r){return r.site_id===curSite.id;});
+  var hist=((lastMe&&lastMe.history)||[]).filter(function(r){return r.site_id===curSite.id;});
+  var html='<div style="margin-bottom:14px"><button class="btn btn-in" onclick="openReportForSite()" style="flex-direction:row;padding:16px;font-size:15px">この現場の日報を出す</button></div>';
+  html+='<div class="sec">提出済みの日報</div><div class="card" style="padding:14px;margin-bottom:14px">';
+  if(!reps.length)html+='<div class="spin" style="padding:6px">まだ日報はありません</div>';
+  else reps.slice(0,10).forEach(function(r,i){
+    html+='<div'+(i>0?' style="margin-top:10px;border-top:1px solid #eef1f3;padding-top:10px"':'')+'>'
+      +'<div style="font-weight:800;font-size:13.5px">'+fmtMD(r.date)+'　<span style="font-weight:600;color:var(--sub);font-size:12px">写真'+(r.photos?r.photos.length:0)+'枚</span></div>'
+      +(r.body?'<div style="font-size:12.5px;color:var(--sub);margin-top:3px;line-height:1.5">'+esc(r.body)+'</div>':'')+'</div>';
+  });
+  html+='</div>';
+  html+='<div class="sec">この現場の出面履歴</div><div class="card">';
+  if(!hist.length)html+='<div class="spin" style="padding:6px">まだ記録がありません</div>';
+  else hist.slice(0,15).forEach(function(r){
+    var color=r.last_out?'#0a8f4f':(r.first_in?'#06c755':'#cbd2d8');
+    html+='<div class="day"><span class="d">'+parseInt(r.date.slice(5,7))+'/'+parseInt(r.date.slice(8,10))+'</span><span class="pip" style="background:'+color+'"></span><span class="tm">'+fmtT(r.first_in)+' → '+(r.last_out?fmtT(r.last_out):'在場中')+'</span><span class="rep '+(r.has_report?'rep-y':'rep-n')+'">'+(r.has_report?'日報済':'日報未')+'</span></div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+async function openReportForSite(){
+  if(!curSite)return;
+  await showRepSitePicker();
+  var sel=document.getElementById('repSite'); if(sel)sel.value=curSite.id;
+  go('report');
+}
+/* ---- 現場詳細チャット（genba-chat v3 の site_id 指定）---- */
+var sChatTimer=null, sChatSince=null;
+function startSiteChat(){ sChatSince=null; var b=document.getElementById('sChatBox'); if(b)b.innerHTML='<div class="spin">読込中…</div>'; loadSiteChat(); if(sChatTimer)clearInterval(sChatTimer); sChatTimer=setInterval(loadSiteChat,5000); }
+function stopSiteChat(){ if(sChatTimer){clearInterval(sChatTimer);sChatTimer=null;} }
+async function loadSiteChat(){
+  if(!idToken||!curSite)return;
+  try{
+    var body={mode:'list',id_token:idToken,site_id:curSite.id}; if(sChatSince)body.since=sChatSince;
+    var r=await fetch(BASE+'/genba-chat',{method:'POST',headers:H,body:JSON.stringify(body)});
+    var j=await r.json();
+    var box=document.getElementById('sChatBox'); if(!box)return;
+    if(!j.ok){ if(j.error==='not_member')box.innerHTML='<div class="spin">この現場のチャットには参加できません（この現場での打刻、または自社の予定登録が必要です）。</div>'; else if(j.error==='worker_not_found')box.innerHTML='<div class="spin">先に登録してください。</div>'; return; }
+    clearUnread(j.site_id);
+    if(!sChatSince){ box.innerHTML=''; if(!j.messages.length)box.innerHTML='<div class="spin">まだメッセージはありません。</div>'; }
+    if(j.messages.length){ if(box.querySelector('.spin'))box.innerHTML=''; appendMsgs(box,j.messages,j.mine); sChatSince=j.messages[j.messages.length-1].created_at; box.scrollTop=box.scrollHeight; }
+  }catch(e){}
+}
+async function sendSiteChat(){
+  if(!curSite)return;
+  var inp=document.getElementById('sChatInput'); var v=inp.value.trim(); if(!v)return; inp.value='';
+  try{ await fetch(BASE+'/genba-chat',{method:'POST',headers:H,body:JSON.stringify({mode:'send',id_token:idToken,site_id:curSite.id,body:v})}); loadSiteChat(); }
+  catch(e){ inp.value=v; }
+}
+async function loadTodaySched(){
+  try{
+    var r=await fetch(BASE+'/genba-schedule',{method:'POST',headers:H,body:JSON.stringify({mode:'list_mine',id_token:idToken})});
+    var j=await r.json();
+    if(j.ok){schedCache=j.schedules||[];if(lastMe)renderToday(lastMe);}
+  }catch(e){}
+}
+function renderHist(h){
+  var el=document.getElementById('histCard');
+  if(!h||!h.length){el.innerHTML='<div class="spin">まだ記録がありません</div>';return;}
+  var html='';
+  for(var i=0;i<h.length;i++){var r=h[i];
+    var color=r.last_out?'#0a8f4f':(r.first_in?'#06c755':'#cbd2d8');
+    var dd=r.date.slice(8)+'日';
+    var tm=fmtT(r.first_in)+' → '+(r.last_out?fmtT(r.last_out):'在場中');
+    html+='<div class="day"><span class="d">'+dd+'</span><span class="pip" style="background:'+color+'"></span><span class="tm">'+tm+'</span><span class="rep '+(r.has_report?'rep-y':'rep-n')+'">'+(r.has_report?'日報済':'日報未')+'</span></div>';
+  }
+  el.innerHTML=html;
+}
+function showReg(companies){
+  var sel=document.getElementById('reg-company'); sel.innerHTML='';
+  (companies||[]).forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+  for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value==='合同会社REALIFE'){ sel.selectedIndex=i; break; } }
+  var ts=document.getElementById('reg-trade'); ts.innerHTML=''; TRADES.forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t;ts.appendChild(o);});
+  document.getElementById('reg-name').placeholder = myName ? ('未入力なら「'+myName+'」') : '未入力ならLINEの名前を使用';
+  document.getElementById('reg').style.display='block';
+}
+function regStatus(m,k){var s=document.getElementById('reg-status');s.style.display='flex';s.className='status'+(k?' '+k:'');document.getElementById('reg-msg').textContent=m;}
+async function register(){
+  var company=document.getElementById('reg-company').value;
+  var trade=document.getElementById('reg-trade').value;
+  var name=document.getElementById('reg-name').value.trim();
+  if(!company||!trade){regStatus('会社と担当工事を選んでください。','err');return;}
+  document.getElementById('reg-btn').disabled=true; regStatus('登録中…','busy');
+  try{
+    var r=await fetch(BASE+'/genba-register',{method:'POST',headers:H,body:JSON.stringify({id_token:idToken,company_name:company,trade:trade,name:name})});
+    var j=await r.json();
+    if(j.ok){ document.getElementById('reg').style.display='none'; setStatus('登録しました。QRを読み取って打刻できます。','ok'); loadMe(); }
+    else{ regStatus('登録に失敗しました（'+(j.error||'')+'）','err'); document.getElementById('reg-btn').disabled=false; }
+  }catch(e){ regStatus('通信エラー: '+(e&&e.message?e.message:e),'err'); document.getElementById('reg-btn').disabled=false; }
+}
+function wd(ymd){return '日月火水木金土'[new Date(ymd+'T00:00:00+09:00').getDay()];}
+/* ---- 現場チャット ---- */
+var chatTimer=null, chatMine=null, chatSince=null, chatInited=false;
+// REA-174: 現場詳細から開いた場合はその現場のチャットを表示（未指定なら本日打刻した現場）
+var chatSiteId=null;
+function clearChatSite(){ chatSiteId=null; startChat(); }
+function startChat(){ chatSince=null; document.getElementById('chatBox').innerHTML='<div class="spin">読込中…</div>'; loadChat(); if(chatTimer)clearInterval(chatTimer); chatTimer=setInterval(loadChat,5000); }
+function stopChat(){ if(chatTimer){clearInterval(chatTimer);chatTimer=null;} }
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function appendMsgs(box, msgs, mineId){
+  var mid=(mineId!==undefined)?mineId:chatMine;
+  msgs.forEach(function(m){
+    var mine=(m.sender_role==='worker' && m.sender_worker_id && m.sender_worker_id===mid);
+    var kan=(m.sender_role==='kantoku');
+    var d=document.createElement('div');
+    var t=new Date(m.created_at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+    if(mine){ d.style.cssText='align-self:flex-end;max-width:80%'; d.innerHTML='<div style="background:#06c755;color:#fff;padding:9px 12px;border-radius:14px 14px 3px 14px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word">'+esc(m.body)+'</div><div style="text-align:right;font-size:9.5px;color:#9aa4ad;margin-top:2px">'+t+'</div>'; }
+    else{ d.style.cssText='align-self:flex-start;max-width:82%'; d.innerHTML='<div style="font-size:10.5px;color:#6b7280;margin:0 0 2px 3px;font-weight:600">'+esc(m.sender_name||(kan?'監督':'職人'))+(kan?' <span style="color:#185fa5">監督</span>':'')+'</div><div style="background:#fff;border:1px solid var(--bd);padding:9px 12px;border-radius:3px 14px 14px 14px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word">'+esc(m.body)+'</div><div style="font-size:9.5px;color:#9aa4ad;margin-top:2px;margin-left:3px">'+t+'</div>'; }
+    box.appendChild(d);
+  });
+}
+async function loadChat(){
+  if(!idToken)return;
+  try{
+    var body={mode:'list',id_token:idToken}; if(chatSiteId)body.site_id=chatSiteId; if(chatSince)body.since=chatSince;
+    var r=await fetch(BASE+'/genba-chat',{method:'POST',headers:H,body:JSON.stringify(body)});
+    var j=await r.json();
+    var box=document.getElementById('chatBox');
+    if(!j.ok){ if(j.error==='no_site_today'){box.innerHTML='<div class="spin">本日の現場に入場すると、その現場のチャットが使えます。ホームの現場一覧から現場を選ぶと、その現場のチャットも開けます。</div>';document.getElementById('chatSite').textContent='';} else if(j.error==='not_member'){box.innerHTML='<div class="spin">この現場のチャットには参加できません（この現場での打刻、または自社の予定登録が必要です）。</div>';} else if(j.error==='worker_not_found'){box.innerHTML='<div class="spin">先に登録してください。</div>';} return; }
+    chatMine=j.mine;
+    clearUnread(j.site_id); // 閲覧＝既読（サーバー側もgenba-chat v4で既読化済み）
+    document.getElementById('chatSite').innerHTML='現場：'+esc(j.site_name||'')+(chatSiteId?'　<a onclick="clearChatSite()" style="color:#185fa5;cursor:pointer;font-weight:700">本日の現場へ切替</a>':'');
+    if(!chatSince){ box.innerHTML=''; if(!j.messages.length) box.innerHTML='<div class="spin">まだメッセージはありません。</div>'; }
+    if(j.messages.length){ if(box.querySelector('.spin'))box.innerHTML=''; appendMsgs(box,j.messages,chatMine); chatSince=j.messages[j.messages.length-1].created_at; box.scrollTop=box.scrollHeight; }
+  }catch(e){}
+}
+async function sendChat(){
+  var inp=document.getElementById('chatInput'); var v=inp.value.trim(); if(!v)return;
+  inp.value='';
+  try{ var sb={mode:'send',id_token:idToken,body:v}; if(chatSiteId)sb.site_id=chatSiteId; await fetch(BASE+'/genba-chat',{method:'POST',headers:H,body:JSON.stringify(sb)}); loadChat(); }
+  catch(e){ inp.value=v; }
+}
+async function scanQR(){
+  try{
+    if(!liff.scanCodeV2){setStatus("QRが使えません。ミニアプリ設定の「Scan QR」をONにしてください。","err");return;}
+    setStatus("QRをスキャン中…","busy");
+    var r=await liff.scanCodeV2();qr=r.value;
+    setSite("読取済み（打刻できます）",false);setButtons(true);
+    setStatus("QR読取OK。","ok");
+  }catch(e){setStatus("QR読取に失敗しました。もう一度お試しください。","err");}
+}
+async function punch(type){
+  if(!idToken){setStatus("LINEログインが必要です。","err");return;}
+  if(!qr){setStatus("先に現場のQRコードを読み取ってください。","err");return;}
+  setButtons(false);setStatus((type==='in'?'入場':'退場')+"を送信中…","busy");
+  if(!pendingPunch||pendingPunch.type!==type){ pendingPunch={type:type,key:newKey()}; }
+  try{
+    var res=await fetch(BASE+"/punch",{method:"POST",headers:H,body:JSON.stringify({id_token:idToken,type:type,method:"qr",qr_token:qr,idempotency_key:pendingPunch.key})});
+    var j=await res.json();
+    if(j.ok){
+      pendingPunch=null;
+      setSite(j.site||'現場',true);
+      // REA-180: サーバー再取得を待たずに状態を反映（loadMeが後追いで正す）
+      if(lastMe){
+        var lt=lastMe.today||{};
+        if(type==='in'){lastMe.today={status:'in',site_id:lt.site_id,first_in:j.attendance.occurred_at,elapsed_min:0};}
+        else{lastMe.today={status:'out',site_id:lt.site_id,first_in:lt.first_in||j.attendance.occurred_at,last_out:j.attendance.occurred_at};}
+      }
+      if(type==='out'){qr=null;setSite('QR未読取',false);setStatus('退場を記録しました。日報タブから報告を提出できます。','ok');go('report');}
+      else{setStatus('入場を記録しました。作業終了後は必ず退場打刻してください。','ok');}
+      setButtons(true);loadMe();
+    }else if(j.error==='worker_not_found'){setStatus("はじめての方は登録してください。","err");loadMe();}
+    else if(j.error==='qr_invalid'||j.error==='no_qr'){setStatus("このQRコードは現場に登録されていません。","err");setButtons(true);}
+    else{setStatus("打刻に失敗しました（"+(j.error||'unknown')+"）","err");setButtons(true);}
+  }catch(e){setStatus("通信エラー: 再度ボタンを押すと同じ打刻として再送されます（"+(e&&e.message?e.message:e)+"）","err");setButtons(true);}
+}
+
+/* ---- 日報 ---- */
+var repSites=null;
+async function showRepSitePicker(){
+  var card=document.getElementById('repSiteCard');card.style.display='block';
+  if(repSites)return;
+  try{
+    var r=await fetch(BASE+'/genba-me',{method:'POST',headers:H,body:JSON.stringify({id_token:idToken})});
+    // v15 から完了現場も返るため、日報の提出先は稼働中の現場のみに絞る
+    var j=await r.json();repSites=((j&&j.sites)||[]).filter(function(s){return s.status!=='completed';});
+    var sel=document.getElementById('repSite');
+    repSites.forEach(function(st){var o=document.createElement('option');o.value=st.id;o.textContent=st.name;sel.appendChild(o);});
+  }catch(e){/* 選択肢が取れなくても手動再試行できるよう握りつぶす */}
+}
+var photos=[];/* REA-119: {data, type} 形式。type=before|during|after */
+var PHOTO_TYPES=['during','before','after'];
+var PHOTO_TYPE_LABELS={before:'施工前',during:'施工中',after:'完了'};
+var PHOTO_TYPE_COLORS={before:'#2563eb',during:'#0a8f4f',after:'#b45309'};
+function repStatus(m,k){var s=document.getElementById('repStatus');s.className='status'+(k?' '+k:'');document.getElementById('repMsg').textContent=m;}
+function cyclePhotoType(i){var cur=photos[i].type;var idx=PHOTO_TYPES.indexOf(cur);photos[i].type=PHOTO_TYPES[(idx+1)%PHOTO_TYPES.length];renderThumbs();}
+function renderThumbs(){var t=document.getElementById('thumbs');t.innerHTML='';photos.forEach(function(p,i){var d=document.createElement('div');d.style.cssText='position:relative;width:96px;height:122px;border-radius:12px;overflow:hidden;border:1px solid var(--bd)';d.innerHTML='<img src="'+p.data+'" style="width:100%;height:88px;object-fit:cover">'+'<span onclick="cyclePhotoType('+i+')" style="position:absolute;left:0;right:0;bottom:0;height:34px;line-height:34px;text-align:center;font-size:13px;font-weight:800;color:#fff;background:'+PHOTO_TYPE_COLORS[p.type]+';cursor:pointer;touch-action:manipulation">'+PHOTO_TYPE_LABELS[p.type]+'</span>'+'<span onclick="removePhoto('+i+')" style="position:absolute;top:2px;right:2px;width:28px;height:28px;border-radius:50%;background:rgba(17,24,28,.82);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer">×</span>';t.appendChild(d);});}
+function removePhoto(i){photos.splice(i,1);renderThumbs();}
+function addPhotos(ev){var files=ev.target.files;if(!files)return;Array.from(files).forEach(function(f){if(photos.length>=6)return;resizeImage(f,function(durl){photos.push({data:durl,type:'during'});renderThumbs();});});ev.target.value='';}
+function resizeImage(file,cb){var img=new Image();var rd=new FileReader();rd.onload=function(){img.onload=function(){var max=1280;var w=img.width,h=img.height;if(w>max||h>max){if(w>h){h=Math.round(h*max/w);w=max;}else{w=Math.round(w*max/h);h=max;}}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',0.7));};img.src=rd.result;};rd.readAsDataURL(file);}
+/* ---- REA-182: チャット定型文（タップで入力欄へ。編集してから送信） ---- */
+function quickFill(inputId,txt){var i=document.getElementById(inputId);if(!i)return;i.value=txt;i.focus();}
+/* ---- REA-181: 提出前確認 ---- */
+function photoCounts(){var c={before:0,during:0,after:0};photos.forEach(function(p){c[p.type]=(c[p.type]||0)+1;});return c;}
+function repSiteName(){
+  var sel=document.getElementById('repSite');
+  if(sel&&sel.value){for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===sel.value)return sel.options[i].textContent;}}
+  var t=(lastMe&&lastMe.today)||{};
+  if(t.site_id){var s=siteById(t.site_id);if(s)return s.name;}
+  return '本日の打刻現場';
+}
+function showRepConfirm(){
+  if(!idToken){repStatus('LINEログインが必要です。','err');return;}
+  var body=document.getElementById('repBody').value.trim();
+  if(!body&&photos.length===0){repStatus('写真か作業内容を入力してください。','err');return;}
+  var c=photoCounts();
+  var ph=photos.length?('写真 '+photos.length+'枚（施工前'+c.before+'・施工中'+c.during+'・完了'+c.after+'）'):'写真なし';
+  document.getElementById('repcSummary').innerHTML=
+    '<b>現場:</b> '+esc(repSiteName())+'<br>'
+    +'<b>写真:</b> '+ph+'<br>'
+    +'<b>作業内容:</b> '+(body?(esc(body.length>60?body.slice(0,60)+'…':body)+'（'+body.length+'文字）'):'未入力');
+  document.getElementById('repConfirm').style.display='block';
+  document.getElementById('repConfirm').scrollIntoView({behavior:'smooth',block:'nearest'});
+  repStatus('内容を確認して「この内容で提出する」を押してください。','');
+}
+function hideRepConfirm(){var el=document.getElementById('repConfirm');if(el)el.style.display='none';}
+/* ---- REA-181: 音声入力（非対応端末ではボタンを隠す） ---- */
+var rec=null,recOn=false;
+function initVoice(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){var b=document.getElementById('voiceBtn');if(b)b.style.display='none';}}
+function voiceUI(){var b=document.getElementById('voiceBtn'),l=document.getElementById('voiceLbl');if(!b||!l)return;b.classList.toggle('rec',recOn);l.textContent=recOn?'停止（音声入力中…）':'音声で入力';}
+function toggleVoice(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR)return;
+  if(recOn){try{rec.stop();}catch(e){} recOn=false; voiceUI(); return;}
+  rec=new SR(); rec.lang='ja-JP'; rec.interimResults=false; rec.continuous=true;
+  rec.onresult=function(ev){
+    var t='';
+    for(var i=ev.resultIndex;i<ev.results.length;i++){if(ev.results[i].isFinal)t+=ev.results[i][0].transcript;}
+    if(t){var ta=document.getElementById('repBody');ta.value=(ta.value?ta.value+'\n':'')+t;}
+  };
+  rec.onend=function(){recOn=false;voiceUI();};
+  rec.onerror=function(){recOn=false;voiceUI();repStatus('音声入力を利用できませんでした。マイクの許可を確認してください。','err');};
+  try{rec.start();recOn=true;}catch(e){recOn=false;}
+  voiceUI();
+}
+/* ---- REA-181: AI下書き（サーバー生成→失敗時は端末内テンプレート） ---- */
+function draftTemplate(){
+  var t=(lastMe&&lastMe.today)||{};
+  var nm=repSiteName(); var trade=null;
+  (schedCache||[]).forEach(function(s){if(!trade&&s.trade&&(s.site_id===t.site_id||(s.site===nm)))trade=s.trade;});
+  var c=photoCounts(), lines=[];
+  lines.push(nm+'にて'+(trade?trade+'作業':'本日の作業')+'を実施しました。');
+  if(c.before)lines.push('着手前の状況を確認し、施工前写真'+c.before+'枚を記録しました。');
+  if(c.during)lines.push('作業中の経過は施工中写真'+c.during+'枚のとおりです。');
+  if(c.after)lines.push('仕上がりを確認し、完了写真'+c.after+'枚を添付しました。');
+  if(t.first_in)lines.push('入場 '+fmtT(t.first_in)+(t.last_out?(' / 退場 '+fmtT(t.last_out)):'')+'。');
+  lines.push('（特記事項・翌日の予定があれば追記してください）');
+  return lines.join('\n');
+}
+async function aiDraft(){
+  var btn=document.getElementById('aiBtn'), lbl=document.getElementById('aiLbl');
+  var ta=document.getElementById('repBody');
+  if(ta.value.trim()&&!window.confirm('入力済みの作業内容を下書きで置き換えます。よろしいですか？'))return;
+  if(btn)btn.disabled=true; if(lbl)lbl.textContent='作成中…';
+  var draft=null;
+  try{ // サーバー側のAI生成（genba-report-draft）。未デプロイ/失敗時はテンプレートに切替
+    var r=await fetch(BASE+'/genba-report-draft',{method:'POST',headers:H,body:JSON.stringify({id_token:idToken,site:repSiteName(),photo_types:photos.map(function(p){return p.type;}),memo:ta.value.trim()})});
+    if(r.ok){var j=await r.json(); if(j&&j.ok&&j.draft)draft=j.draft;}
+  }catch(e){}
+  if(!draft)draft=draftTemplate();
+  ta.value=draft;
+  if(btn)btn.disabled=false; if(lbl)lbl.textContent='AIで下書きを作成';
+  repStatus('下書きを作成しました。内容を確認・修正してから提出してください。','ok');
+}
+async function submitReport(){
+  if(!idToken){repStatus('LINEログインが必要です。','err');return;}
+  var body=document.getElementById('repBody').value.trim();
+  if(!body&&photos.length===0){repStatus('写真か作業内容を入力してください。','err');return;}
+  document.getElementById('repSubmit').disabled=true;var rg=document.getElementById('repcGo');if(rg)rg.disabled=true;repStatus('提出中…','busy');
+  try{
+    var selSite=document.getElementById('repSite').value||null;
+    var res=await fetch(BASE+'/report-submit',{method:'POST',headers:H,body:JSON.stringify({id_token:idToken,body:body,photos:photos,site_id:selSite})});
+    var j=await res.json();
+    if(j.ok){hideRepConfirm();repStatus('日報を提出しました（写真'+j.report.photos+'枚）。監督が確認します。','ok');loadMe();}
+    else if(j.error==='punch_first'){hideRepConfirm();showRepSitePicker();repStatus('本日の打刻がありません。上の「現場」を選んでから提出してください。','err');}
+    else if(j.error==='worker_not_found'){hideRepConfirm();repStatus('未登録の職人です。監督に登録を依頼してください。','err');}
+    else{repStatus('提出に失敗しました（'+(j.error||'unknown')+'）','err');}
+  }catch(e){repStatus('通信エラー: '+(e&&e.message?e.message:e),'err');}
+  finally{document.getElementById('repSubmit').disabled=false;var rg2=document.getElementById('repcGo');if(rg2)rg2.disabled=false;}
+}
+initVoice();
+boot();
+</script>
+</body>
+</html>

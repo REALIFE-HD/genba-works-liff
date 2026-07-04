@@ -27,5 +27,5 @@ jobs:
         working-directory: react-app
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: build React app to app/"
-          file_pattern: app/**
+          commit_message: "chore: build React app to GitHub Pages root"
+          file_pattern: index.html assets/** app/index.html

@@ -1,9 +1,31 @@
 # 現場WORKS React + LIFF（Option A / REA-189）
 
-職人向け LIFF ミニアプリの UI 層を React + Tailwind へ移行するソースです。
+職人向け LIFF ミニアプリ — React + Tailwind + `@line/liff`
 
-- **legacy**: リポジトリ直下の `index.html`（vanilla JS）— 本番並行運用
-- **React 版**: ビルド出力 `../app/` → GitHub Pages `/genba-works-liff/app/`
+## 本番 URL
+
+| 用途 | URL |
+|------|-----|
+| **本番（React）** | https://toyama2026.github.io/genba-works-liff/ |
+| LIFF リンク | https://liff.line.me/2010459645-nZrNO9J0 |
+| Legacy（ロールバック用） | [legacy/index.html](legacy/index.html) |
+| 旧 `/app/` パス | `/app/` → 本番へリダイレクト |
+
+## LINE Developers 設定
+
+LIFF エンドポイント URL は以下に設定してください（**変更不要**のはず — legacy と同じルート）:
+
+```
+https://toyama2026.github.io/genba-works-liff/
+```
+
+または
+
+```
+https://toyama2026.github.io/genba-works-liff/index.html
+```
+
+Scan QR は **ON** のままにしてください。
 
 ## 開発
 
@@ -13,28 +35,23 @@ npm install
 npm run dev
 ```
 
-LIFF 実機確認は `npm run build` 後に GitHub Pages へデプロイするか、LIFF Endpoint を一時的にローカル tunnel へ向けてください。
-
-## ビルド（GitHub Pages）
+## ビルド（GitHub Pages ルートへ出力）
 
 ```bash
+cd react-app
 npm run build
 ```
 
-`../app/` に成果物が出力されます。
+`index.html` と `assets/` がリポジトリ直下に出力されます。push 後 GitHub Actions でも同様にビルドされます。
 
 ## 構成
 
 ```text
-src/liff/     LIFF init・login（LINE 固有）
-src/pages/    画面（5タブ）
-src/components/
+react-app/src/
+├── liff/       LIFF init・login
+├── context/    GenbaContext（API・状態）
+├── lib/        api, types, format, site-helpers
+├── pages/      ホーム / 現場 / 打刻 / 日報 / チャット / マイ
+└── components/
+legacy/index.html   旧 vanilla JS（REA-189 以前）
 ```
-
-## 移行順
-
-1. ✅ スキャフォールド + LIFF + ホーム骨格
-2. 現場一覧・詳細
-3. 打刻フロー
-4. 日報
-5. チャット
