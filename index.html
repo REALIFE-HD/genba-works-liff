@@ -32,7 +32,9 @@ svg{display:block}
 .site-box.pending .nm{color:var(--sub);font-weight:700;font-size:15px}
 .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:16px;padding:20px;font-size:18px;font-weight:800;cursor:pointer;transition:transform .08s,filter .15s}
 .btn:active{transform:scale(.985)}
-.btn-scan{background:var(--ink);color:#fff;box-shadow:0 6px 16px rgba(20,24,27,.18)}
+/* 主CTAはグリーンに統一（REA-174: 黒CTAは世界観から浮くため廃止） */
+.btn-scan{background:var(--line);color:#fff;box-shadow:0 6px 16px rgba(6,199,85,.3)}
+.btn-scan:hover,.btn-scan:active{background:var(--line-d)}
 .punch-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .btn-in{background:var(--line);color:#fff;flex-direction:column;gap:6px;padding:22px 10px;box-shadow:0 6px 16px rgba(6,199,85,.3)}
 .btn-out{background:var(--warn);color:#fff;flex-direction:column;gap:6px;padding:22px 10px;box-shadow:0 6px 16px rgba(232,69,60,.28)}
@@ -107,7 +109,7 @@ input,select,textarea{font-size:16px !important}
       <div class="sec">クイックメニュー</div>
       <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px">
         <button class="btn btn-scan" onclick="go('punch')" style="padding:16px 8px;font-size:15px">打刻する</button>
-        <button class="btn" onclick="go('sites')" style="background:#eef6ff;color:#185fa5;padding:16px 8px;font-size:15px">現場を探す</button>
+        <button class="btn" onclick="go('sites')" style="background:#EAF4FF;color:#2563EB;padding:16px 8px;font-size:15px">現場を探す</button>
       </div>
     </div>
 
