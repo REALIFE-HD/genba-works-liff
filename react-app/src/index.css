@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+:root {
+  --line: #06c755;
+  --line-dark: #05a847;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic UI", Meiryo,
+    sans-serif;
+  background: #f2f5f7;
+  color: #14181b;
+  -webkit-tap-highlight-color: transparent;
+}
