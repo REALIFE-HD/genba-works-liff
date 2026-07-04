@@ -376,7 +376,8 @@ function fillMy(){
 /* ---- 現場タブ：検索・フィルター・状態別カード（REA-174 再設計）---- */
 var curSite=null, siteFilter='all', doneOpen=false;
 var SITE_FILTERS=[['all','全部'],['today','今日'],['in','在場中'],['sched','予定'],['done','完了']];
-var GROUP_LABEL={in:'🟢 在場中',today:'🟠 今日',tomorrow:'🔵 明日',sched:'⚪ 予定あり',other:'⚪ その他の現場',done:'✔ 完了した現場'};
+function groupDot(c){return '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+c+';margin-right:6px;vertical-align:.5px"></span>';}
+var GROUP_LABEL={in:groupDot('#0a8f4f')+'在場中',today:groupDot('#f59e0b')+'今日',tomorrow:groupDot('#2563eb')+'明日',sched:groupDot('#94a3b8')+'予定あり',other:groupDot('#cbd2d8')+'その他の現場',done:groupDot('#94a3b8')+'完了した現場'};
 function fmtMD(ymd){return parseInt(ymd.slice(5,7))+'/'+parseInt(ymd.slice(8,10))+'('+wd(ymd)+')';}
 function siteNextSched(siteId){
   if(!schedCache)return null;
@@ -480,7 +481,7 @@ function renderSiteHead(){
   document.getElementById('siteHead').innerHTML=
     '<div style="font-weight:800;font-size:18px;line-height:1.35">'+esc(curSite.name)+badge+'</div>'
     +(curSite.address
-      ?'<a href="https://maps.google.com/?q='+encodeURIComponent(curSite.address)+'" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:#185fa5;text-decoration:none;margin-top:4px">📍 '+esc(curSite.address)+'（地図）</a>'
+      ?'<a href="https://maps.google.com/?q='+encodeURIComponent(curSite.address)+'" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:#185fa5;text-decoration:none;margin-top:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>'+esc(curSite.address)+'（地図）</a>'
       :'');
 }
 function renderSiteTabs(){
@@ -579,7 +580,7 @@ function renderPanePhoto(){
 function renderPanePlan(){
   var el=document.getElementById('sp-plan'); if(!el)return;
   el.innerHTML='<div class="sec">図面</div><div class="card" style="text-align:center;padding:28px 16px">'
-    +'<div style="font-size:32px;margin-bottom:8px">📐</div>'
+    +'<div style="margin-bottom:10px;color:#cbd2d8"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg></div>'
     +'<div style="font-weight:700;font-size:14px;color:var(--sub)">図面はまだ登録されていません</div>'
     +'<div style="font-size:12px;color:#9aa4ad;margin-top:6px">監督が管理画面から図面を登録すると、ここに表示されます（準備中）</div></div>';
 }
