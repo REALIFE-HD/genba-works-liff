@@ -4,7 +4,7 @@ import { ChatPanel } from "../components/ChatPanel";
 export function ChatPage() {
   return (
     <div>
-      <Section>現場チャット</Section>
+      <Section>現場連絡</Section>
       <ChatPanel />
     </div>
   );

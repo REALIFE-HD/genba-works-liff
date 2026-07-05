@@ -26,7 +26,7 @@ const SITE_TABS: [SiteTabKey, string][] = [
   ["ov", "概要"],
   ["photo", "写真"],
   ["plan", "図面・資料"],
-  ["chat", "チャット"],
+  ["chat", "現場連絡"],
   ["report", "日報"],
 ];
 
@@ -234,7 +234,7 @@ export function SiteDetailPage() {
                 "report",
               ],
               [
-                "この現場のチャットを開く" +
+                "この現場の連絡を開く" +
                   (unreadFor(me, curSite.id)
                     ? "（未読" + unreadFor(me, curSite.id) + "件）"
                     : ""),
