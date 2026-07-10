@@ -1,6 +1,6 @@
 import type { SiteFilter } from "./constants";
 import { fmtMD, jstToday } from "./format";
-import type { GenbaMeResponse, GenbaSchedule, GenbaSite } from "./types";
+import type { GenbaMeResponse, GenbaReport, GenbaSchedule, GenbaSite } from "./types";
 
 export type SiteGroup = "in" | "today" | "tomorrow" | "sched" | "other" | "done";
 
@@ -91,6 +91,14 @@ export function lastUnreported(me: GenbaMeResponse | null): string | null {
     if (!best || r.date > best) best = r.date;
   }
   return best;
+}
+
+export function todayPhotoShortageReport(me: GenbaMeResponse | null): GenbaReport | null {
+  const today = jstToday();
+  return (
+    me?.reports?.find((r) => r.date === today && (r.photos?.length ?? 0) === 0) ??
+    null
+  );
 }
 
 export function unreadTotal(me: GenbaMeResponse | null): number {

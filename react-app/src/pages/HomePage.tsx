@@ -23,6 +23,7 @@ import {
   nextSchedAfter,
   schedToday,
   siteById,
+  todayPhotoShortageReport,
   unreadTotal,
 } from "../lib/site-helpers";
 function TodoRow({
@@ -62,6 +63,7 @@ export function HomePage() {
     scanQR,
     go,
     openSite,
+    openReportForSite,
     setTab,
   } = useGenba();
 
@@ -202,6 +204,21 @@ export function HomePage() {
     todos.push(
       <TodoRow key="unrep" cls="todo-warn" onClick={() => setTab("report")}>
         未提出日報を書く（{unrep === today ? "本日分" : fmtMD(unrep)}・写真と作業内容）
+      </TodoRow>,
+    );
+  }
+  const photoShortageReport = todayPhotoShortageReport(me);
+  if (photoShortageReport) {
+    todos.push(
+      <TodoRow
+        key="photo"
+        cls="todo-amber"
+        onClick={() => {
+          if (photoShortageReport.site_id) openReportForSite(photoShortageReport.site_id);
+          else setTab("report");
+        }}
+      >
+        本日の日報に写真がありません（写真を追加してください）
       </TodoRow>,
     );
   }
