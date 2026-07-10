@@ -93,6 +93,12 @@ export function lastUnreported(me: GenbaMeResponse | null): string | null {
   return best;
 }
 
+export function todayReportPhotoShortage(me: GenbaMeResponse | null): boolean {
+  const today = jstToday();
+  const r = me?.reports?.find((x) => x.date === today);
+  return !!r && (r.photos?.length ?? 0) === 0;
+}
+
 export function unreadTotal(me: GenbaMeResponse | null): number {
   return (me?.unread ?? []).reduce((n, u) => n + (u.count || 0), 0);
 }
