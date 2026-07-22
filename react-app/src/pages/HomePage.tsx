@@ -58,13 +58,17 @@ export function HomePage() {
   const {
     me,
     schedCache,
+    meBoot,
+    meBootError,
     unrep,
     openPunch,
+    openSiteChat,
     scanQR,
     go,
     openSite,
     openReportForSite,
     setTab,
+    refreshMe,
   } = useGenba();
 
   const today = jstToday();
@@ -75,7 +79,26 @@ export function HomePage() {
   const next = nextSchedAfter(schedCache, today);
 
   let stateCard: React.ReactNode;
-  if (t.status === "in") {
+  if (meBoot === "error" && !me) {
+    stateCard = (
+      <Card>
+        <p className="text-center text-sm font-semibold text-[#cf3a31]">
+          {meBootError ?? "読み込みに失敗しました"}
+        </p>
+        <PrimaryBtn className="mt-3 py-3.5 text-[15px]" onClick={() => void refreshMe()}>
+          再試行
+        </PrimaryBtn>
+      </Card>
+    );
+  } else if (meBoot === "loading" && (!me || schedCache === null)) {
+    stateCard = (
+      <Card>
+        <p className="animate-pulse py-3 text-center text-sm font-semibold text-[#6b7280]">
+          読み込み中…
+        </p>
+      </Card>
+    );
+  } else if (t.status === "in") {
     const s = siteById(me, t.site_id ?? "");
     const nm = s?.name ?? "現場";
     stateCard = (
@@ -128,14 +151,6 @@ export function HomePage() {
           おつかれさまでした。再入場する場合はQRを読み取り直してください
         </p>
         <GhostBtn onClick={() => setTab("report")}>日報を書く</GhostBtn>
-      </Card>
-    );
-  } else if (!me || schedCache === null) {
-    stateCard = (
-      <Card>
-        <p className="animate-pulse py-3 text-center text-sm font-semibold text-[#6b7280]">
-          読み込み中…
-        </p>
       </Card>
     );
   } else {
@@ -226,7 +241,14 @@ export function HomePage() {
   }
   if (t.status === "in") {
     todos.push(
-      <TodoRow key="out" cls="todo-warn" onClick={() => openPunch("home")}>
+      <TodoRow
+        key="out"
+        cls="todo-warn"
+        onClick={() => {
+          openPunch("home");
+          void scanQR();
+        }}
+      >
         退場打刻を忘れずに（QR→退場ボタン）
       </TodoRow>,
     );
@@ -253,8 +275,16 @@ export function HomePage() {
   }
   const un = unreadTotal(me);
   if (un) {
+    const firstUnreadSite = me?.unread?.find((u) => (u.count || 0) > 0)?.site_id;
     todos.push(
-      <TodoRow key="chat" cls="todo-info" onClick={() => setTab("chat")}>
+      <TodoRow
+        key="chat"
+        cls="todo-info"
+        onClick={() => {
+          if (firstUnreadSite) openSiteChat(firstUnreadSite);
+          else setTab("chat");
+        }}
+      >
         チャットの未読を確認（{un}件）
       </TodoRow>,
     );

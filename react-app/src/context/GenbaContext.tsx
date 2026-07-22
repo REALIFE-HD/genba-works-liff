@@ -44,10 +44,13 @@ type GenbaContextValue = {
   idToken: string | null;
   me: GenbaMeResponse | null;
   schedCache: GenbaSchedule[] | null;
+  meBoot: "loading" | "ready" | "error";
+  meBootError: string | null;
   view: ViewKey;
   tab: TabKey;
   curSite: GenbaSite | null;
   siteTab: SiteTabKey;
+  dmThreadOpen: boolean;
   siteFilter: SiteFilter;
   siteQuery: string;
   doneOpen: boolean;
@@ -85,6 +88,7 @@ type GenbaContextValue = {
   punch: (type: "in" | "out") => Promise<void>;
   register: (company: string, trade: string, name: string) => Promise<void>;
   setChatSiteId: (id: string | null) => void;
+  setDmThreadOpen: (open: boolean) => void;
   loadChat: (since?: string | null, siteId?: string | null) => Promise<{
     ok: boolean;
     messages: ChatMessage[];
@@ -147,6 +151,8 @@ export function GenbaProvider({
   const [idToken, setIdToken] = useState<string | null>(null);
   const [me, setMe] = useState<GenbaMeResponse | null>(null);
   const [schedCache, setSchedCache] = useState<GenbaSchedule[] | null>(null);
+  const [meBoot, setMeBoot] = useState<"loading" | "ready" | "error">("loading");
+  const [meBootError, setMeBootError] = useState<string | null>(null);
   const [view, setView] = useState<ViewKey>("home");
   const [tab, setTabState] = useState<TabKey>("home");
   const [curSite, setCurSite] = useState<GenbaSite | null>(null);
@@ -165,6 +171,7 @@ export function GenbaProvider({
   const [regBusy, setRegBusy] = useState(false);
   const [regStatus, setRegStatus] = useState<PunchStatus>({ message: "", kind: "" });
   const [chatSiteId, setChatSiteId] = useState<string | null>(null);
+  const [dmThreadOpen, setDmThreadOpen] = useState(false);
   const [photos, setPhotos] = useState<LocalPhoto[]>([]);
   const [repBody, setRepBody] = useState("");
   const [repConfirmOpen, setRepConfirmOpen] = useState(false);
@@ -192,15 +199,17 @@ export function GenbaProvider({
         "/genba-schedule",
         { mode: "list_mine", id_token: token },
       );
-      if (j.ok) setSchedCache(j.schedules ?? []);
+      setSchedCache(j.ok ? (j.schedules ?? []) : []);
     } catch {
-      /* ignore */
+      setSchedCache([]);
     }
   }, []);
 
   const refreshMe = useCallback(async () => {
     const token = idToken ?? getLiffIdToken();
     if (!idToken) setIdToken(token);
+    setMeBoot((prev) => (prev === "ready" ? "ready" : "loading"));
+    setMeBootError(null);
     try {
       const j = await apiPost<GenbaMeResponse & { companies?: string[] }>(
         "/genba-me",
@@ -210,16 +219,30 @@ export function GenbaProvider({
         if (j.error === "worker_not_found") {
           setShowReg(true);
           setRegCompanies(j.companies ?? []);
+          setSchedCache((prev) => prev ?? []);
+          setMeBoot("ready");
+          return;
         }
+        setMeBoot("error");
+        setMeBootError(
+          j.error === "unauthorized"
+            ? "ログイン情報を取得できませんでした。"
+            : "データの読み込みに失敗しました。",
+        );
+        setSchedCache((prev) => prev ?? []);
         return;
       }
       setShowReg(false);
       setMe(j);
-      if (schedCache === null) await loadSchedule(token);
+      await loadSchedule(token);
+      setMeBoot("ready");
+      setMeBootError(null);
     } catch {
-      /* ignore */
+      setMeBoot("error");
+      setMeBootError("通信エラーで読み込めませんでした。");
+      setSchedCache((prev) => prev ?? []);
     }
-  }, [idToken, schedCache, loadSchedule]);
+  }, [idToken, loadSchedule]);
 
   useEffect(() => {
     try {
@@ -794,10 +817,13 @@ export function GenbaProvider({
     idToken,
     me,
     schedCache,
+    meBoot,
+    meBootError,
     view,
     tab,
     curSite,
     siteTab,
+    dmThreadOpen,
     siteFilter,
     siteQuery,
     doneOpen,
@@ -835,6 +861,7 @@ export function GenbaProvider({
     punch,
     register,
     setChatSiteId,
+    setDmThreadOpen,
     loadChat,
     sendChat,
     loadDmWorkers,

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Calendar,
+  ChevronDown,
   MapPin,
   MessageCircle,
   Navigation,
@@ -27,7 +28,7 @@ const SITE_TABS: [SiteTabKey, string][] = [
   ["ov", "概要"],
   ["photo", "写真"],
   ["plan", "図面"],
-  ["chat", "連絡"],
+  ["chat", "チャット"],
   ["report", "日報"],
 ];
 
@@ -40,7 +41,6 @@ export function SiteDetailPage() {
     setSiteTab,
     closeSite,
     openPunch,
-    openSiteChat,
     scanQR,
     toggleScheduleDay,
     createSchedule,
@@ -58,6 +58,7 @@ export function SiteDetailPage() {
     kind: "",
   });
   const [scBusy, setScBusy] = useState(false);
+  const [schedFormOpen, setSchedFormOpen] = useState(false);
 
   if (!curSite) return null;
   const m = siteMeta(me, schedCache, curSite);
@@ -100,72 +101,101 @@ export function SiteDetailPage() {
   const chatUnread = unreadFor(me, curSite.id);
 
   return (
-    <div className={siteTab === "chat" ? "" : "pb-20"}>
-      <BackBtn onClick={closeSite} label="現場一覧へ" />
+    <div className={siteTab === "chat" ? "" : "pb-4"}>
+      {siteTab !== "chat" && (
+        <BackBtn onClick={closeSite} label="現場一覧へ" />
+      )}
 
-      <div className="mb-3 px-1">
-        <div className="text-lg leading-snug font-extrabold">
-          {curSite.name}
-          {m.inNow ? (
-            <span className="ml-1.5 inline-block rounded-full bg-[#e7f8ef] px-2 py-0.5 text-[10px] font-extrabold text-[#0a8f4f]">
-              在場中
-            </span>
-          ) : m.next ? (
-            <span className="ml-1.5 inline-block rounded-full bg-[#fff7e6] px-2 py-0.5 text-[10px] font-extrabold text-[#b45309]">
-              {m.next.date === jstToday() ? "今日" : fmtMD(m.next.date)} 予定
-            </span>
-          ) : null}
-        </div>
-        {curSite.address && (
-          <>
-            <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(curSite.address)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1 inline-flex items-center gap-1 text-[12.5px] text-[#185fa5]"
-            >
-              <MapPin className="h-3 w-3" />
-              {curSite.address}（地図）
-            </a>
-            <div>
+      {siteTab !== "chat" && (
+        <div className="mb-3 px-1">
+          <div className="text-lg leading-snug font-extrabold">
+            {curSite.name}
+            {m.inNow ? (
+              <span className="ml-1.5 inline-block rounded-full bg-[#e7f8ef] px-2 py-0.5 text-[10px] font-extrabold text-[#0a8f4f]">
+                在場中
+              </span>
+            ) : m.next ? (
+              <span className="ml-1.5 inline-block rounded-full bg-[#fff7e6] px-2 py-0.5 text-[10px] font-extrabold text-[#b45309]">
+                {m.next.date === jstToday() ? "今日" : fmtMD(m.next.date)} 予定
+              </span>
+            ) : null}
+          </div>
+          {curSite.address && (
+            <>
               <a
-                href={navUrl(curSite.address)}
+                href={`https://maps.google.com/?q=${encodeURIComponent(curSite.address)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 inline-flex items-center gap-1 rounded-[11px] border border-[#cfe3fa] bg-[#eef6ff] px-3 py-2 text-xs font-extrabold text-[#2563eb]"
+                className="mt-1 inline-flex items-center gap-1 text-[12.5px] text-[#185fa5]"
               >
-                <Navigation className="h-3.5 w-3.5" /> ナビを開始
+                <MapPin className="h-3 w-3" />
+                {curSite.address}（地図）
               </a>
-            </div>
-          </>
-        )}
-      </div>
+              <div>
+                <a
+                  href={navUrl(curSite.address)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 rounded-[11px] border border-[#cfe3fa] bg-[#eef6ff] px-3 py-2 text-xs font-extrabold text-[#2563eb]"
+                >
+                  <Navigation className="h-3.5 w-3.5" /> ナビを開始
+                </a>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
-      <div className="mb-3.5 flex gap-1.5 overflow-x-auto pb-0.5">
-        {SITE_TABS.map(([key, label]) => {
-          const unread = key === "chat" ? chatUnread : 0;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setSiteTab(key)}
-              className={`relative shrink-0 rounded-full px-4 py-2.5 text-[13px] font-bold ${
-                siteTab === key
-                  ? "bg-[#06c755] text-white"
-                  : "bg-white text-[#6b7280] shadow-[inset_0_0_0_1px_#e6eaee]"
-              }`}
-            >
-              {label}
-              {unread > 0 && siteTab !== "chat" && (
-                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#f2f5f7] bg-[#e8453c]" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {siteTab === "chat" ? (
+        <div className="mb-2 flex items-center gap-2 px-1">
+          <BackBtn
+            onClick={() => setSiteTab("ov")}
+            label="現場へ"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-extrabold text-[#14181b]">
+              {curSite.name}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="mb-3.5 flex gap-1.5 overflow-x-auto pb-0.5">
+          {SITE_TABS.map(([key, label]) => {
+            const unread = key === "chat" ? chatUnread : 0;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSiteTab(key)}
+                className={`relative shrink-0 rounded-full px-4 py-2.5 text-[13px] font-bold ${
+                  siteTab === key
+                    ? "bg-[#06c755] text-white"
+                    : "bg-white text-[#6b7280] shadow-[inset_0_0_0_1px_#e6eaee]"
+                }`}
+              >
+                {label}
+                {unread > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#f2f5f7] bg-[#e8453c]" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {siteTab === "ov" && (
         <>
+          {chatUnread > 0 && (
+            <button
+              type="button"
+              onClick={() => setSiteTab("chat")}
+              className="mb-3 flex w-full items-center gap-2 rounded-[14px] border border-[#cfead9] bg-[#e7f8ef] px-3.5 py-3 text-left text-[13.5px] font-extrabold text-[#0a8f4f]"
+            >
+              <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2.4} />
+              未読{chatUnread}件 · チャットを見る
+              <span className="ml-auto opacity-55">›</span>
+            </button>
+          )}
           {t.site_id === curSite.id && t.status === "in" && (
             <div className="mb-3 rounded-[14px] bg-[#e7f8ef] px-3.5 py-3 text-[13.5px] font-bold text-[#0a8f4f]">
               この現場に在場中（{Math.floor((t.elapsed_min ?? 0) / 60)}時間
@@ -244,20 +274,15 @@ export function SiteDetailPage() {
                 "report",
               ] as const,
               [
-                "この現場の連絡を開く" +
-                  (unreadFor(me, curSite.id)
-                    ? "（未読" + unreadFor(me, curSite.id) + "件）"
-                    : ""),
+                "この現場のチャットを開く" +
+                  (chatUnread ? "（未読" + chatUnread + "件）" : ""),
                 "chat",
               ] as const,
             ].map(([txt, pane]) => (
               <div
                 key={pane}
                 role="button"
-                onClick={() => {
-                  if (pane === "chat") openSiteChat(curSite.id);
-                  else setSiteTab(pane);
-                }}
+                onClick={() => setSiteTab(pane)}
                 className="mb-2 flex cursor-pointer items-center rounded-[14px] bg-[#f1f4f2] px-3.5 py-3 text-[13.5px] font-bold text-[#6b7280] last:mb-0"
               >
                 {txt}
@@ -266,65 +291,76 @@ export function SiteDetailPage() {
             ))}
           </Card>
 
-          <Section>この現場に予定を登録</Section>
-          <Card className="!p-3.5">
-            <div className="flex gap-2.5">
-              <div className="flex-1">
-                <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">開始日</label>
-                <input
-                  type="date"
-                  value={scStart}
-                  onChange={(e) => setScStart(e.target.value)}
-                  className="w-full rounded-[11px] border border-[#e6eaee] p-2.5 text-base"
-                />
+          <button
+            type="button"
+            onClick={() => setSchedFormOpen((v) => !v)}
+            className="mb-2.5 flex w-full items-center gap-1.5 px-1 text-left text-xs font-extrabold tracking-wide text-[#6b7280]"
+          >
+            この現場に予定を登録
+            <ChevronDown
+              className={`ml-auto h-4 w-4 transition-transform ${schedFormOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {schedFormOpen && (
+            <Card className="!p-3.5">
+              <div className="flex gap-2.5">
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">開始日</label>
+                  <input
+                    type="date"
+                    value={scStart}
+                    onChange={(e) => setScStart(e.target.value)}
+                    className="w-full rounded-[11px] border border-[#e6eaee] p-2.5 text-base"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">終了日</label>
+                  <input
+                    type="date"
+                    value={scEnd}
+                    onChange={(e) => setScEnd(e.target.value)}
+                    className="w-full rounded-[11px] border border-[#e6eaee] p-2.5 text-base"
+                  />
+                </div>
               </div>
-              <div className="flex-1">
-                <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">終了日</label>
-                <input
-                  type="date"
-                  value={scEnd}
-                  onChange={(e) => setScEnd(e.target.value)}
-                  className="w-full rounded-[11px] border border-[#e6eaee] p-2.5 text-base"
-                />
+              <div className="mt-2.5 flex gap-2.5">
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">担当工事</label>
+                  <select
+                    value={scTrade}
+                    onChange={(e) => setScTrade(e.target.value)}
+                    className="w-full rounded-[11px] border border-[#e6eaee] bg-white p-2.5 text-base"
+                  >
+                    {TRADES.map((x) => (
+                      <option key={x}>{x}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="w-[84px] shrink-0">
+                  <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">人数</label>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    value={scHead}
+                    onChange={(e) => setScHead(e.target.value)}
+                    className="w-full rounded-[11px] border border-[#e6eaee] p-2.5 text-base"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="mt-2.5 flex gap-2.5">
-              <div className="flex-1">
-                <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">担当工事</label>
-                <select
-                  value={scTrade}
-                  onChange={(e) => setScTrade(e.target.value)}
-                  className="w-full rounded-[11px] border border-[#e6eaee] bg-white p-2.5 text-base"
-                >
-                  {TRADES.map((x) => (
-                    <option key={x}>{x}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="w-[84px] shrink-0">
-                <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">人数</label>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={scHead}
-                  onChange={(e) => setScHead(e.target.value)}
-                  className="w-full rounded-[11px] border border-[#e6eaee] p-2.5 text-base"
-                />
-              </div>
-            </div>
-            <PrimaryBtn
-              className="mt-3 py-4 text-base"
-              disabled={scBusy}
-              onClick={() => void handleCreateSched()}
-            >
-              予定を登録
-            </PrimaryBtn>
-            {scStatus.message && (
-              <div className="mt-3">
-                <StatusBar message={scStatus.message} kind={scStatus.kind} />
-              </div>
-            )}
-          </Card>
+              <PrimaryBtn
+                className="mt-3 py-4 text-base"
+                disabled={scBusy}
+                onClick={() => void handleCreateSched()}
+              >
+                予定を登録
+              </PrimaryBtn>
+              {scStatus.message && (
+                <div className="mt-3">
+                  <StatusBar message={scStatus.message} kind={scStatus.kind} />
+                </div>
+              )}
+            </Card>
+          )}
         </>
       )}
 
@@ -455,21 +491,6 @@ export function SiteDetailPage() {
             )}
           </Card>
         </>
-      )}
-
-      {/* KANNA-style sticky chat — hide when already in 連絡 tab */}
-      {siteTab !== "chat" && (
-        <div className="pointer-events-none fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-1/2 z-20 w-full max-w-[460px] -translate-x-1/2 px-4 pb-2">
-          <button
-            type="button"
-            onClick={() => openSiteChat(curSite.id)}
-            className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#06c755] py-3.5 text-[15px] font-extrabold text-white shadow-lg shadow-[#06c755]/30"
-          >
-            <MessageCircle className="h-5 w-5" strokeWidth={2.4} />
-            チャット
-            {chatUnread > 0 ? `（未読${chatUnread}件）` : ""}
-          </button>
-        </div>
       )}
     </div>
   );

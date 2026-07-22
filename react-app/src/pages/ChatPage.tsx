@@ -16,55 +16,52 @@ export function ChatPage() {
     [me?.sites, chatSiteId],
   );
 
+  const inSiteThread = mode === "site" && !!chatSiteId;
+
   return (
     <div>
-      <div className="mb-3 px-1">
-        <h2 className="text-[17px] font-extrabold text-[#14181b]">チャット</h2>
-        <p className="mt-0.5 text-[12px] font-semibold text-[#6b7280]">
-          現場の連絡と個人メッセージ
-        </p>
-      </div>
-      <div className="mb-3 flex rounded-2xl border border-[#e6eaee] bg-[#f1f4f2] p-1">
-        <button
-          type="button"
-          onClick={() => setMode("site")}
-          className={`flex-1 rounded-xl py-2.5 text-[13px] font-extrabold transition-colors ${
-            mode === "site" ? "bg-white text-[#14181b] shadow-sm" : "text-[#6b7280]"
-          }`}
-        >
-          現場
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("dm")}
-          className={`flex-1 rounded-xl py-2.5 text-[13px] font-extrabold transition-colors ${
-            mode === "dm" ? "bg-white text-[#14181b] shadow-sm" : "text-[#6b7280]"
-          }`}
-        >
-          個人
-        </button>
-      </div>
+      {!inSiteThread && (
+        <>
+          <div className="mb-3 px-1">
+            <h2 className="text-[17px] font-extrabold text-[#14181b]">チャット</h2>
+            <p className="mt-0.5 text-[12px] font-semibold text-[#6b7280]">
+              現場の連絡と個人メッセージ
+            </p>
+          </div>
+          <div className="mb-3 flex rounded-2xl border border-[#e6eaee] bg-[#f1f4f2] p-1">
+            <button
+              type="button"
+              onClick={() => setMode("site")}
+              className={`flex-1 rounded-xl py-2.5 text-[13px] font-extrabold transition-colors ${
+                mode === "site" ? "bg-white text-[#14181b] shadow-sm" : "text-[#6b7280]"
+              }`}
+            >
+              現場
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("dm")}
+              className={`flex-1 rounded-xl py-2.5 text-[13px] font-extrabold transition-colors ${
+                mode === "dm" ? "bg-white text-[#14181b] shadow-sm" : "text-[#6b7280]"
+              }`}
+            >
+              個人
+            </button>
+          </div>
+        </>
+      )}
       {mode === "site" ? (
         chatSiteId ? (
           <div>
-            <BackBtn
-              onClick={() => setChatSiteId(null)}
-              label="一覧へ"
-            />
-            <div className="mb-2.5 px-1">
-              <p className="truncate text-[15px] font-extrabold text-[#14181b]">
-                {activeSite?.name ?? "現場連絡"}
-              </p>
-              {activeSite?.address && (
-                <p className="truncate text-[11.5px] font-semibold text-[#6b7280]">
-                  {activeSite.address}
+            <div className="mb-2 flex items-center gap-2">
+              <BackBtn onClick={() => setChatSiteId(null)} label="一覧へ" />
+              <div className="min-w-0 flex-1 px-1">
+                <p className="truncate text-[15px] font-extrabold text-[#14181b]">
+                  {activeSite?.name ?? "現場連絡"}
                 </p>
-              )}
+              </div>
             </div>
-            <ChatPanel
-              siteId={chatSiteId}
-              siteName={activeSite?.name}
-            />
+            <ChatPanel siteId={chatSiteId} siteName={activeSite?.name} />
           </div>
         ) : (
           <SiteChatList

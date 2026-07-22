@@ -14,8 +14,14 @@ function timeAgoOrTime(iso: string | null): string {
 }
 
 export function DmPanel() {
+  const { setDmThreadOpen } = useGenba();
   const [mode, setMode] = useState<"list" | "picker" | "thread">("list");
   const [activeWorker, setActiveWorker] = useState<{ id: string; name: string } | null>(null);
+
+  useEffect(() => {
+    setDmThreadOpen(mode === "thread");
+    return () => setDmThreadOpen(false);
+  }, [mode, setDmThreadOpen]);
 
   if (mode === "thread" && activeWorker) {
     return (

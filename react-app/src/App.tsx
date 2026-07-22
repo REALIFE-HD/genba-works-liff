@@ -19,11 +19,31 @@ type Phase =
   | { kind: "ready"; displayName: string };
 
 function AppShell() {
-  const { view, tab, setTab, me, reportAlert, displayName } = useGenba();
+  const {
+    view,
+    tab,
+    setTab,
+    me,
+    reportAlert,
+    displayName,
+    siteTab,
+    chatSiteId,
+    dmThreadOpen,
+  } = useGenba();
   const chatAlert = (me?.unread ?? []).some((u) => (u.count || 0) > 0);
+  const hideBottomNav =
+    view === "punch" ||
+    (view === "site" && siteTab === "chat") ||
+    (view === "chat" && (!!chatSiteId || dmThreadOpen));
 
   return (
-    <>
+    <div
+      className={
+        hideBottomNav
+          ? ""
+          : "pb-[calc(5rem+env(safe-area-inset-bottom))]"
+      }
+    >
       <Header displayName={displayName} env={me?.env} />
       <main className="px-4 pt-4">
         {view === "home" && <HomePage />}
@@ -34,7 +54,7 @@ function AppShell() {
         {view === "chat" && <ChatPage />}
         {view === "my" && <MyPage />}
       </main>
-      {view !== "punch" && (
+      {!hideBottomNav && (
         <BottomNav
           active={tab}
           onChange={setTab}
@@ -43,7 +63,7 @@ function AppShell() {
         />
       )}
       <RegisterOverlay />
-    </>
+    </div>
   );
 }
 
@@ -99,7 +119,7 @@ export default function App() {
 
   return (
     <GenbaProvider displayName={phase.displayName}>
-      <div className="mx-auto min-h-dvh max-w-[460px] bg-[#f2f5f7] pb-[calc(5rem+env(safe-area-inset-bottom))]">
+      <div className="mx-auto min-h-dvh max-w-[460px] bg-[#f2f5f7]">
         <AppShell />
       </div>
     </GenbaProvider>
