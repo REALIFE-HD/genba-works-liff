@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   Calendar,
   MapPin,
+  MessageCircle,
   Navigation,
 } from "lucide-react";
 import { useGenba } from "../context/GenbaContext";
@@ -39,6 +40,7 @@ export function SiteDetailPage() {
     setSiteTab,
     closeSite,
     openPunch,
+    openSiteChat,
     scanQR,
     toggleScheduleDay,
     createSchedule,
@@ -177,6 +179,17 @@ export function SiteDetailPage() {
             この現場で打刻する（QR読取）
           </PrimaryBtn>
 
+          <PrimaryBtn
+            className="mb-3.5 flex items-center justify-center gap-2 py-4 text-[15px]"
+            onClick={() => openSiteChat(curSite.id)}
+          >
+            <MessageCircle className="h-5 w-5" strokeWidth={2.4} />
+            チャット
+            {unreadFor(me, curSite.id) > 0
+              ? `（未読${unreadFor(me, curSite.id)}件）`
+              : ""}
+          </PrimaryBtn>
+
           <Section>工程（入らない日はタップで切替）</Section>
           <Card className="!p-3.5">
             {!scheds.length ? (
@@ -228,23 +241,26 @@ export function SiteDetailPage() {
           <Section>最近の動き</Section>
           <Card className="!p-2.5">
             {[
-              ["報告写真 " + phN + "枚", "photo"],
+              ["報告写真 " + phN + "枚", "photo"] as const,
               [
                 lastRep ? "日報 " + fmtMD(lastRep) + " 提出" : "日報 まだ提出がありません",
                 "report",
-              ],
+              ] as const,
               [
                 "この現場の連絡を開く" +
                   (unreadFor(me, curSite.id)
                     ? "（未読" + unreadFor(me, curSite.id) + "件）"
                     : ""),
                 "chat",
-              ],
+              ] as const,
             ].map(([txt, pane]) => (
               <div
                 key={pane}
                 role="button"
-                onClick={() => setSiteTab(pane as SiteTabKey)}
+                onClick={() => {
+                  if (pane === "chat") openSiteChat(curSite.id);
+                  else setSiteTab(pane);
+                }}
                 className="mb-2 flex cursor-pointer items-center rounded-[14px] bg-[#f1f4f2] px-3.5 py-3 text-[13.5px] font-bold text-[#6b7280] last:mb-0"
               >
                 {txt}

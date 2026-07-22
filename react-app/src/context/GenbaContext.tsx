@@ -75,6 +75,7 @@ type GenbaContextValue = {
   closePunch: () => void;
   openSite: (id: string) => void;
   closeSite: () => void;
+  openSiteChat: (siteId: string) => void;
   setSiteTab: (t: SiteTabKey) => void;
   setSiteFilter: (f: SiteFilter) => void;
   setSiteQuery: (q: string) => void;
@@ -284,6 +285,13 @@ export function GenbaProvider({
     setCurSite(null);
     go("sites");
   }, [go]);
+
+  const openSiteChat = useCallback((siteId: string) => {
+    setChatSiteId(siteId);
+    setCurSite(null);
+    setView("chat");
+    setTabState("chat");
+  }, []);
 
   const scanQR = useCallback(async () => {
     const scan = (liff as unknown as { scanCodeV2?: () => Promise<{ value: string }> })
@@ -817,6 +825,7 @@ export function GenbaProvider({
     closePunch,
     openSite,
     closeSite,
+    openSiteChat,
     setSiteTab,
     setSiteFilter,
     setSiteQuery,

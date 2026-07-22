@@ -20,6 +20,7 @@ type Phase =
 
 function AppShell() {
   const { view, tab, setTab, me, reportAlert, displayName } = useGenba();
+  const chatAlert = (me?.unread ?? []).some((u) => (u.count || 0) > 0);
 
   return (
     <>
@@ -34,7 +35,12 @@ function AppShell() {
         {view === "my" && <MyPage />}
       </main>
       {view !== "punch" && (
-        <BottomNav active={tab} onChange={setTab} reportAlert={reportAlert} />
+        <BottomNav
+          active={tab}
+          onChange={setTab}
+          reportAlert={reportAlert}
+          chatAlert={chatAlert}
+        />
       )}
       <RegisterOverlay />
     </>

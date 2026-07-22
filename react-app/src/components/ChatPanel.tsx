@@ -10,7 +10,7 @@ export function ChatPanel({
   siteId?: string;
   siteName?: string;
 }) {
-  const { loadChat, sendChat, setChatSiteId, chatSiteId } = useGenba();
+  const { loadChat, sendChat, chatSiteId } = useGenba();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [mine, setMine] = useState<string | undefined>();
   const [input, setInput] = useState("");
@@ -94,22 +94,6 @@ export function ChatPanel({
       {!siteId && (
         <p className="mb-2.5 px-1 text-xs font-semibold text-[#6b7280]">
           現場：{resolvedSite || "…"}
-          {chatSiteId && (
-            <>
-              {" "}
-              <button
-                type="button"
-                className="font-bold text-[#185fa5]"
-                onClick={() => {
-                  setChatSiteId(null);
-                  sinceRef.current = null;
-                  setMessages([]);
-                }}
-              >
-                本日の現場へ切替
-              </button>
-            </>
-          )}
         </p>
       )}
       <div
