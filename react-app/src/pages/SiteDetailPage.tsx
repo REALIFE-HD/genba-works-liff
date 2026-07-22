@@ -26,8 +26,8 @@ import type { SiteTabKey } from "../lib/types";
 const SITE_TABS: [SiteTabKey, string][] = [
   ["ov", "概要"],
   ["photo", "写真"],
-  ["plan", "図面・資料"],
-  ["chat", "現場連絡"],
+  ["plan", "図面"],
+  ["chat", "連絡"],
   ["report", "日報"],
 ];
 
@@ -100,7 +100,7 @@ export function SiteDetailPage() {
   const chatUnread = unreadFor(me, curSite.id);
 
   return (
-    <div className="pb-20">
+    <div className={siteTab === "chat" ? "" : "pb-20"}>
       <BackBtn onClick={closeSite} label="現場一覧へ" />
 
       <div className="mb-3 px-1">
@@ -141,21 +141,27 @@ export function SiteDetailPage() {
         )}
       </div>
 
-      <div className="mb-3.5 flex gap-1.5 overflow-x-auto">
-        {SITE_TABS.map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setSiteTab(key)}
-            className={`shrink-0 rounded-full px-4 py-2.5 text-[13px] font-bold ${
-              siteTab === key
-                ? "bg-[#06c755] text-white"
-                : "bg-white text-[#6b7280] shadow-[inset_0_0_0_1px_#e6eaee]"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="mb-3.5 flex gap-1.5 overflow-x-auto pb-0.5">
+        {SITE_TABS.map(([key, label]) => {
+          const unread = key === "chat" ? chatUnread : 0;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSiteTab(key)}
+              className={`relative shrink-0 rounded-full px-4 py-2.5 text-[13px] font-bold ${
+                siteTab === key
+                  ? "bg-[#06c755] text-white"
+                  : "bg-white text-[#6b7280] shadow-[inset_0_0_0_1px_#e6eaee]"
+              }`}
+            >
+              {label}
+              {unread > 0 && siteTab !== "chat" && (
+                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#f2f5f7] bg-[#e8453c]" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {siteTab === "ov" && (
@@ -365,7 +371,7 @@ export function SiteDetailPage() {
           <Card className="py-7 text-center">
             <p className="text-sm font-bold text-[#6b7280]">図面はまだ登録されていません</p>
             <p className="mt-1.5 text-xs text-[#9aa4ad]">
-              監督が管理画面から図面を登録すると、ここに表示されます（準備中）
+              監督が管理画面から図面を登録すると、ここに表示されます
             </p>
           </Card>
         </>
@@ -451,18 +457,20 @@ export function SiteDetailPage() {
         </>
       )}
 
-      {/* KANNA-style sticky chat CTA — always visible on site detail */}
-      <div className="pointer-events-none fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-1/2 z-20 w-full max-w-[460px] -translate-x-1/2 px-4 pb-2">
-        <button
-          type="button"
-          onClick={() => openSiteChat(curSite.id)}
-          className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#06c755] py-4 text-[16px] font-extrabold text-white shadow-lg shadow-[#06c755]/35"
-        >
-          <MessageCircle className="h-5 w-5" strokeWidth={2.4} />
-          チャット
-          {chatUnread > 0 ? `（未読${chatUnread}件）` : ""}
-        </button>
-      </div>
+      {/* KANNA-style sticky chat — hide when already in 連絡 tab */}
+      {siteTab !== "chat" && (
+        <div className="pointer-events-none fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-1/2 z-20 w-full max-w-[460px] -translate-x-1/2 px-4 pb-2">
+          <button
+            type="button"
+            onClick={() => openSiteChat(curSite.id)}
+            className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-[#06c755] py-3.5 text-[15px] font-extrabold text-white shadow-lg shadow-[#06c755]/30"
+          >
+            <MessageCircle className="h-5 w-5" strokeWidth={2.4} />
+            チャット
+            {chatUnread > 0 ? `（未読${chatUnread}件）` : ""}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

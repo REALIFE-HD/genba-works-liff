@@ -4,10 +4,10 @@ export type TabKey = "home" | "sites" | "report" | "chat" | "me";
 
 const TABS: { key: TabKey; label: string; icon: typeof Home }[] = [
   { key: "home", label: "ホーム", icon: Home },
-  { key: "sites", label: "今日の現場", icon: HardHat },
-  { key: "report", label: "日報を書く", icon: NotebookPen },
+  { key: "sites", label: "現場", icon: HardHat },
+  { key: "report", label: "日報", icon: NotebookPen },
   { key: "chat", label: "チャット", icon: MessageCircle },
-  { key: "me", label: "マイページ", icon: User },
+  { key: "me", label: "マイ", icon: User },
 ];
 
 export function BottomNav({
@@ -22,7 +22,7 @@ export function BottomNav({
   chatAlert?: boolean;
 }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-10 flex h-[calc(4rem+env(safe-area-inset-bottom))] w-full max-w-[460px] -translate-x-1/2 border-t border-[#e6eaee] bg-white pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-1/2 z-10 flex h-[calc(4rem+env(safe-area-inset-bottom))] w-full max-w-[460px] -translate-x-1/2 border-t border-[#e6eaee] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm">
       {TABS.map(({ key, label, icon: Icon }) => (
         <button
           key={key}
@@ -38,7 +38,7 @@ export function BottomNav({
           {key === "chat" && chatAlert && (
             <span className="absolute top-2 left-[calc(50%+8px)] h-2 w-2 rounded-full border-2 border-white bg-[#e8453c]" />
           )}
-          <Icon className="h-5 w-5" strokeWidth={2.2} />
+          <Icon className="h-5 w-5" strokeWidth={active === key ? 2.4 : 2.1} />
           {label}
         </button>
       ))}

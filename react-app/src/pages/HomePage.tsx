@@ -130,10 +130,12 @@ export function HomePage() {
         <GhostBtn onClick={() => setTab("report")}>日報を書く</GhostBtn>
       </Card>
     );
-  } else if (schedCache === null) {
+  } else if (!me || schedCache === null) {
     stateCard = (
       <Card>
-        <p className="py-2 text-center text-sm text-[#6b7280]">確認中…</p>
+        <p className="animate-pulse py-3 text-center text-sm font-semibold text-[#6b7280]">
+          読み込み中…
+        </p>
       </Card>
     );
   } else {

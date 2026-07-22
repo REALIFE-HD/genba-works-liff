@@ -1,9 +1,10 @@
+import { CalendarDays } from "lucide-react";
 import { useGenba } from "../context/GenbaContext";
-import { Card, Section } from "../components/ui/Card";
+import { Card, EmptyState, Section } from "../components/ui/Card";
 import { fmtTime } from "../lib/format";
 
 export function MyPage() {
-  const { me, displayName } = useGenba();
+  const { me, displayName, setTab } = useGenba();
   const name = me?.worker?.name || displayName || "職人";
   const month = me?.month ?? {};
   const history = me?.history ?? [];
@@ -31,7 +32,7 @@ export function MyPage() {
             key={key}
             className="rounded-2xl border border-[#e6eaee] bg-white px-2 py-3.5 text-center shadow-sm"
           >
-            <div className="text-2xl font-extrabold">
+            <div className="text-2xl font-extrabold tabular-nums">
               {month[key as keyof typeof month] ?? "–"}
             </div>
             <div className="mt-0.5 text-[11px] font-semibold text-[#6b7280]">{label}</div>
@@ -40,11 +41,17 @@ export function MyPage() {
       </div>
 
       <Section>日別履歴</Section>
-      <Card>
-        {!history.length ? (
-          <p className="py-6 text-center text-sm text-[#6b7280]">まだ記録がありません</p>
-        ) : (
-          history.map((r) => {
+      {!history.length ? (
+        <EmptyState
+          icon={<CalendarDays className="h-6 w-6" strokeWidth={2.2} />}
+          title="まだ記録がありません"
+          body="現場で打刻すると、ここに日別の出面が表示されます。"
+          actionLabel="現場を見る"
+          onAction={() => setTab("sites")}
+        />
+      ) : (
+        <Card>
+          {history.map((r) => {
             const color = r.last_out
               ? "#0a8f4f"
               : r.first_in
@@ -72,9 +79,9 @@ export function MyPage() {
                 </span>
               </div>
             );
-          })
-        )}
-      </Card>
+          })}
+        </Card>
+      )}
     </div>
   );
 }

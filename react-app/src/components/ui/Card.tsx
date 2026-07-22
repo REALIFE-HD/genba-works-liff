@@ -111,3 +111,42 @@ export function GhostBtn({
     </button>
   );
 }
+
+export function EmptyState({
+  icon,
+  title,
+  body,
+  actionLabel,
+  onAction,
+}: {
+  icon?: React.ReactNode;
+  title: string;
+  body?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#e6eaee] bg-white px-5 py-10 text-center shadow-sm">
+      {icon && (
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e7f8ef] text-[#06c755]">
+          {icon}
+        </div>
+      )}
+      <p className="text-[15px] font-extrabold text-[#14181b]">{title}</p>
+      {body && (
+        <p className="mx-auto mt-1.5 max-w-[260px] text-[12.5px] leading-relaxed font-semibold text-[#6b7280]">
+          {body}
+        </p>
+      )}
+      {actionLabel && onAction && (
+        <button
+          type="button"
+          onClick={onAction}
+          className="mt-4 inline-flex items-center justify-center rounded-xl bg-[#06c755] px-4 py-2.5 text-[13px] font-extrabold text-white"
+        >
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}

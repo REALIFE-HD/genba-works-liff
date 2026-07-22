@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { MessageCircle } from "lucide-react";
-import { BackBtn, Section } from "../components/ui/Card";
+import { HardHat, MessageCircle } from "lucide-react";
+import { BackBtn, EmptyState } from "../components/ui/Card";
 import { ChatPanel } from "../components/ChatPanel";
 import { DmPanel } from "../components/DmPanel";
 import { useGenba } from "../context/GenbaContext";
@@ -8,7 +8,7 @@ import { unreadFor } from "../lib/site-helpers";
 import type { GenbaSite } from "../lib/types";
 
 export function ChatPage() {
-  const { me, chatSiteId, setChatSiteId } = useGenba();
+  const { me, chatSiteId, setChatSiteId, setTab } = useGenba();
   const [mode, setMode] = useState<"site" | "dm">("site");
 
   const activeSite = useMemo(
@@ -18,12 +18,17 @@ export function ChatPage() {
 
   return (
     <div>
-      <Section>チャット</Section>
+      <div className="mb-3 px-1">
+        <h2 className="text-[17px] font-extrabold text-[#14181b]">チャット</h2>
+        <p className="mt-0.5 text-[12px] font-semibold text-[#6b7280]">
+          現場の連絡と個人メッセージ
+        </p>
+      </div>
       <div className="mb-3 flex rounded-2xl border border-[#e6eaee] bg-[#f1f4f2] p-1">
         <button
           type="button"
           onClick={() => setMode("site")}
-          className={`flex-1 rounded-xl py-2 text-[13px] font-extrabold transition-colors ${
+          className={`flex-1 rounded-xl py-2.5 text-[13px] font-extrabold transition-colors ${
             mode === "site" ? "bg-white text-[#14181b] shadow-sm" : "text-[#6b7280]"
           }`}
         >
@@ -32,7 +37,7 @@ export function ChatPage() {
         <button
           type="button"
           onClick={() => setMode("dm")}
-          className={`flex-1 rounded-xl py-2 text-[13px] font-extrabold transition-colors ${
+          className={`flex-1 rounded-xl py-2.5 text-[13px] font-extrabold transition-colors ${
             mode === "dm" ? "bg-white text-[#14181b] shadow-sm" : "text-[#6b7280]"
           }`}
         >
@@ -44,15 +49,28 @@ export function ChatPage() {
           <div>
             <BackBtn
               onClick={() => setChatSiteId(null)}
-              label="チャット一覧へ"
+              label="一覧へ"
             />
+            <div className="mb-2.5 px-1">
+              <p className="truncate text-[15px] font-extrabold text-[#14181b]">
+                {activeSite?.name ?? "現場連絡"}
+              </p>
+              {activeSite?.address && (
+                <p className="truncate text-[11.5px] font-semibold text-[#6b7280]">
+                  {activeSite.address}
+                </p>
+              )}
+            </div>
             <ChatPanel
               siteId={chatSiteId}
               siteName={activeSite?.name}
             />
           </div>
         ) : (
-          <SiteChatList onOpen={(id) => setChatSiteId(id)} />
+          <SiteChatList
+            onOpen={(id) => setChatSiteId(id)}
+            onGoSites={() => setTab("sites")}
+          />
         )
       ) : (
         <DmPanel />
@@ -61,7 +79,13 @@ export function ChatPage() {
   );
 }
 
-function SiteChatList({ onOpen }: { onOpen: (siteId: string) => void }) {
+function SiteChatList({
+  onOpen,
+  onGoSites,
+}: {
+  onOpen: (siteId: string) => void;
+  onGoSites: () => void;
+}) {
   const { me } = useGenba();
   const todayId = me?.today?.site_id ?? null;
 
@@ -81,14 +105,18 @@ function SiteChatList({ onOpen }: { onOpen: (siteId: string) => void }) {
 
   if (!sites.length) {
     return (
-      <p className="rounded-2xl border border-[#e6eaee] bg-white px-4 py-8 text-center text-sm text-[#6b7280]">
-        現場がありません。現場一覧から現場を確認してください。
-      </p>
+      <EmptyState
+        icon={<HardHat className="h-6 w-6" strokeWidth={2.2} />}
+        title="まだ現場がありません"
+        body="現場に予定が入るか、打刻するとここに連絡スレッドが表示されます。"
+        actionLabel="現場を確認する"
+        onAction={onGoSites}
+      />
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#e6eaee] bg-white">
+    <div className="overflow-hidden rounded-2xl border border-[#e6eaee] bg-white shadow-sm">
       {sites.map((s, i) => (
         <SiteChatRow
           key={s.id}
@@ -120,7 +148,7 @@ function SiteChatRow({
     <button
       type="button"
       onClick={onOpen}
-      className={`flex w-full items-center gap-3 px-3.5 py-3.5 text-left ${
+      className={`flex w-full items-center gap-3 px-3.5 py-3.5 text-left active:bg-[#f6f8f7] ${
         divider ? "border-t border-[#eef1f3]" : ""
       }`}
     >
@@ -128,17 +156,26 @@ function SiteChatRow({
         <MessageCircle className="h-5 w-5" strokeWidth={2.2} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-extrabold text-[#14181b]">
-          {site.name}
+        <span className="flex items-center gap-1.5">
+          <span className="truncate text-[15px] font-extrabold text-[#14181b]">
+            {site.name}
+          </span>
+          {isToday && (
+            <span className="shrink-0 rounded-full bg-[#e7f8ef] px-1.5 py-0.5 text-[10px] font-extrabold text-[#0a8f4f]">
+              今日
+            </span>
+          )}
         </span>
         <span className="mt-0.5 block truncate text-[12px] font-semibold text-[#6b7280]">
-          {isToday ? "本日の現場" : site.address || "現場連絡"}
+          {site.address || "現場の連絡スレッド"}
         </span>
       </span>
-      {unread > 0 && (
+      {unread > 0 ? (
         <span className="shrink-0 rounded-full bg-[#e8453c] px-2 py-0.5 text-[11px] font-extrabold text-white">
           {unread > 99 ? "99+" : unread}
         </span>
+      ) : (
+        <span className="shrink-0 text-[#c5ccd2]">›</span>
       )}
     </button>
   );

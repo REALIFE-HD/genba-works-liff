@@ -1,6 +1,6 @@
-import { MapPin, Navigation, Search } from "lucide-react";
+import { HardHat, MapPin, Navigation, Search } from "lucide-react";
 import { useGenba } from "../context/GenbaContext";
-import { Section } from "../components/ui/Card";
+import { EmptyState } from "../components/ui/Card";
 import { SITE_FILTERS } from "../lib/constants";
 import { fmtTime, navUrl } from "../lib/format";
 import {
@@ -9,6 +9,7 @@ import {
   siteBadgeLabel,
   type SiteGroup,
 } from "../lib/site-helpers";
+
 const GROUP_DOT: Record<SiteGroup, string> = {
   in: "#0a8f4f",
   today: "#f59e0b",
@@ -33,10 +34,17 @@ export function SitesPage() {
 
   const groups = filterSites(me, schedCache, siteFilter, siteQuery);
   const order: SiteGroup[] = ["in", "today", "tomorrow", "sched", "other", "done"];
+  const hasAny = (me?.sites?.length ?? 0) > 0;
+  const filteredCount = order.reduce((n, g) => n + (groups.get(g)?.length ?? 0), 0);
 
   return (
     <div>
-      <Section>現場</Section>
+      <div className="mb-3 px-1">
+        <h2 className="text-[17px] font-extrabold text-[#14181b]">現場</h2>
+        <p className="mt-0.5 text-[12px] font-semibold text-[#6b7280]">
+          予定・在場中の現場を確認
+        </p>
+      </div>
       <div className="relative mb-2.5">
         <Search className="absolute top-3.5 left-3 h-4 w-4 text-[#9aa4ad]" />
         <input
@@ -63,8 +71,23 @@ export function SitesPage() {
         ))}
       </div>
 
-      {!me?.sites?.length ? (
-        <p className="py-6 text-center text-sm text-[#6b7280]">現場がありません</p>
+      {!hasAny ? (
+        <EmptyState
+          icon={<HardHat className="h-6 w-6" strokeWidth={2.2} />}
+          title="表示できる現場がありません"
+          body="予定登録や打刻があるとここに現場が一覧表示されます。"
+        />
+      ) : filteredCount === 0 ? (
+        <EmptyState
+          icon={<Search className="h-6 w-6" strokeWidth={2.2} />}
+          title="条件に合う現場がありません"
+          body="フィルタや検索を変えてみてください。"
+          actionLabel="全部を表示"
+          onAction={() => {
+            setSiteFilter("all");
+            setSiteQuery("");
+          }}
+        />
       ) : (
         order.map((g) => {
           const arr = groups.get(g) ?? [];
@@ -100,7 +123,7 @@ export function SitesPage() {
                       key={s.id}
                       role="button"
                       onClick={() => openSite(s.id)}
-                      className="mb-2.5 flex cursor-pointer items-center gap-3 rounded-[20px] border border-[#e6eaee] bg-white p-3.5 shadow-sm"
+                      className="mb-2.5 flex cursor-pointer items-center gap-3 rounded-[20px] border border-[#e6eaee] bg-white p-3.5 shadow-sm active:bg-[#f8faf9]"
                     >
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f0f3f5] text-[#6b7280]">
                         <MapPin className="h-5 w-5" />
@@ -121,8 +144,8 @@ export function SitesPage() {
                           )}
                         </span>
                         {sub.length > 0 && (
-                          <span className="mt-0.5 block text-[11.5px] leading-snug text-[#6b7280]">
-                            {sub.join("　")}
+                          <span className="mt-0.5 block truncate text-[11.5px] leading-snug text-[#6b7280]">
+                            {sub.join(" · ")}
                           </span>
                         )}
                       </span>
@@ -148,10 +171,6 @@ export function SitesPage() {
           );
         })
       )}
-      {me?.sites?.length &&
-        order.every((g) => !(groups.get(g)?.length ?? 0)) && (
-          <p className="py-6 text-center text-sm text-[#6b7280]">該当する現場がありません</p>
-        )}
     </div>
   );
 }

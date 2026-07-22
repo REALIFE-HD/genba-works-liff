@@ -99,7 +99,7 @@ export default function App() {
 
   return (
     <GenbaProvider displayName={phase.displayName}>
-      <div className="mx-auto min-h-dvh max-w-[460px] pb-[calc(5rem+env(safe-area-inset-bottom))]">
+      <div className="mx-auto min-h-dvh max-w-[460px] bg-[#f2f5f7] pb-[calc(5rem+env(safe-area-inset-bottom))]">
         <AppShell />
       </div>
     </GenbaProvider>
