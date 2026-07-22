@@ -1,10 +1,10 @@
 export const SUPABASE_FUNCTIONS_BASE =
   import.meta.env.VITE_SUPABASE_FUNCTIONS_BASE?.trim() ||
-  "https://cdrobplodkxyagzyzvpq.supabase.co/functions/v1";
+  "https://svobokofzhigqumuhseu.supabase.co/functions/v1";
 
 export const SUPABASE_ANON_KEY =
   import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() ||
-  "sb_publishable_cEnH7Mug8B7O8JtgSIauMw_MjlVxhW5";
+  "sb_publishable_AK29Uv7Xxv8GO8vXItyFzQ_8fnISQN_";
 
 export const TRADES = [
   "コーティング",
