@@ -200,9 +200,10 @@ export function ReportPage() {
           </div>
           <PrimaryBtn
             className="mt-3 flex-row py-4 text-base"
+            disabled={repStatus.kind === "busy"}
             onClick={() => void submitReport()}
           >
-            この内容で提出する
+            {repStatus.kind === "busy" ? "提出中…" : "この内容で提出する"}
           </PrimaryBtn>
           <GhostBtn onClick={() => setRepConfirmOpen(false)}>修正する</GhostBtn>
         </Card>

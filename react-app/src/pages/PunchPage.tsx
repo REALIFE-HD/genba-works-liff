@@ -21,6 +21,7 @@ export function PunchPage() {
   } = useGenba();
 
   const t = me?.today ?? {};
+  const busy = punchStatus.kind === "busy";
   const scanned = !!qr;
   const inDone = t.status === "in" || t.status === "out";
   const outDone = t.status === "out";
@@ -164,19 +165,23 @@ export function PunchPage() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              disabled={inDisabled}
+              disabled={inDisabled || busy}
               onClick={() => void punch("in")}
               className="flex flex-col items-center gap-1.5 rounded-2xl bg-[#06c755] py-5 text-white shadow-md shadow-[#06c755]/30 disabled:bg-[#e9edf0] disabled:text-[#aab2b9] disabled:shadow-none"
             >
-              <span className="text-[17px] font-extrabold">入場する</span>
+              <span className="text-[17px] font-extrabold">
+                {busy ? "送信中…" : "入場する"}
+              </span>
             </button>
             <button
               type="button"
-              disabled={outDisabled}
+              disabled={outDisabled || busy}
               onClick={() => void punch("out")}
               className="flex flex-col items-center gap-1.5 rounded-2xl bg-[#e8453c] py-5 text-white shadow-md shadow-[#e8453c]/30 disabled:bg-[#e9edf0] disabled:text-[#aab2b9] disabled:shadow-none"
             >
-              <span className="text-[17px] font-extrabold">退場する</span>
+              <span className="text-[17px] font-extrabold">
+                {busy ? "送信中…" : "退場する"}
+              </span>
             </button>
           </div>
           <p className="mt-2.5 text-center text-[11.5px] text-[#6b7280]">{hint}</p>
