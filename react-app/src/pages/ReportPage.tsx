@@ -40,8 +40,32 @@ export function ReportPage() {
   } = useGenba();
 
   const [repSites, setRepSites] = useState<GenbaSite[]>([]);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoNote, setPhotoNote] = useState<string | null>(null);
   const t = me?.today ?? {};
   const needsSitePicker = !(t.status === "in" || t.status === "out");
+
+  // REA-176: 写真追加のフィードバック。処理中表示・上限超過/失敗メッセージ（従来は
+  // 超過分を無言でドロップ、resize失敗も握りつぶしだった）。最大6枚。
+  async function onPickPhotos(files: FileList) {
+    setPhotoNote(null);
+    const remain = 6 - photos.length;
+    if (remain <= 0) {
+      setPhotoNote("写真は最大6枚までです。");
+      return;
+    }
+    if (files.length > remain) {
+      setPhotoNote(`写真は最大6枚まで。${remain}枚のみ追加しました。`);
+    }
+    setPhotoBusy(true);
+    try {
+      await addPhotoFiles(files);
+    } catch {
+      setPhotoNote("写真の読み込みに失敗しました。別の画像でお試しください。");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
 
   useEffect(() => {
     if (needsSitePicker && !repSitesLoaded) {
@@ -103,6 +127,7 @@ export function ReportPage() {
               <img src={p.data} alt="" className="h-[88px] w-full object-cover" />
               <button
                 type="button"
+                aria-label={`写真${i + 1}の区分を切替（現在: ${PHOTO_TYPE_LABELS[p.type]}）`}
                 onClick={() => cyclePhotoType(i)}
                 className="absolute right-0 bottom-0 left-0 h-[34px] text-center text-[13px] leading-[34px] font-extrabold text-white"
                 style={{ background: PHOTO_TYPE_COLORS[p.type] }}
@@ -111,6 +136,7 @@ export function ReportPage() {
               </button>
               <button
                 type="button"
+                aria-label={`写真${i + 1}を削除`}
                 onClick={() => removePhoto(i)}
                 className="absolute top-0.5 right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#11181bcc] text-base text-white"
               >
@@ -120,30 +146,49 @@ export function ReportPage() {
           ))}
         </div>
         <div className="mt-2.5 flex gap-2.5">
-          <label className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-[#06c755] bg-[#f3fcf6] px-2 py-4 text-[13.5px] font-bold text-[#05a847]">
+          <label
+            className={`flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-[#06c755] bg-[#f3fcf6] px-2 py-4 text-[13.5px] font-bold text-[#05a847] ${
+              photoBusy ? "opacity-50" : "cursor-pointer"
+            }`}
+          >
             <Camera className="h-[18px] w-[18px]" />
-            カメラで撮影
+            {photoBusy ? "処理中…" : "カメラで撮影"}
             <input
               type="file"
               accept="image/*"
               capture="environment"
               multiple
               hidden
-              onChange={(e) => e.target.files && void addPhotoFiles(e.target.files)}
+              disabled={photoBusy}
+              onChange={(e) => {
+                if (e.target.files) void onPickPhotos(e.target.files);
+                e.target.value = "";
+              }}
             />
           </label>
-          <label className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-[#94a3b8] bg-[#f8fafc] px-2 py-4 text-[13.5px] font-bold text-[#475569]">
+          <label
+            className={`flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-[#94a3b8] bg-[#f8fafc] px-2 py-4 text-[13.5px] font-bold text-[#475569] ${
+              photoBusy ? "opacity-50" : "cursor-pointer"
+            }`}
+          >
             <Image className="h-[18px] w-[18px]" />
-            アルバムから選択
+            {photoBusy ? "処理中…" : "アルバムから選択"}
             <input
               type="file"
               accept="image/*"
               multiple
               hidden
-              onChange={(e) => e.target.files && void addPhotoFiles(e.target.files)}
+              disabled={photoBusy}
+              onChange={(e) => {
+                if (e.target.files) void onPickPhotos(e.target.files);
+                e.target.value = "";
+              }}
             />
           </label>
         </div>
+        {photoNote && (
+          <p className="mt-2 text-[11.5px] font-bold text-[#b45309]">{photoNote}</p>
+        )}
       </Card>
 
       <Card>
