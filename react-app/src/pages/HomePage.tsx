@@ -1,8 +1,6 @@
 import {
   Calendar,
   MapPin,
-  MessageCircle,
-  NotebookPen,
   QrCode,
   Search,
 } from "lucide-react";
@@ -46,7 +44,7 @@ function TodoRow({
     <div
       role={onClick ? "button" : undefined}
       onClick={onClick}
-      className={`mb-2 flex items-center gap-2.5 rounded-[14px] px-3.5 py-3 text-[13.5px] font-bold leading-snug last:mb-0 ${colors[cls] ?? ""} ${onClick ? "cursor-pointer" : ""}`}
+      className={`mb-2 flex items-center gap-2.5 rounded-[14px] px-3.5 py-3.5 text-[14.5px] font-bold leading-snug last:mb-0 ${colors[cls] ?? ""} ${onClick ? "cursor-pointer" : ""}`}
     >
       {children}
       {onClick && <span className="ml-auto shrink-0 opacity-55">›</span>}
@@ -82,10 +80,10 @@ export function HomePage() {
   if (meBoot === "error" && !me) {
     stateCard = (
       <Card>
-        <p className="text-center text-sm font-semibold text-[#cf3a31]">
+        <p className="text-center text-[15px] font-semibold text-[#cf3a31]">
           {meBootError ?? "読み込みに失敗しました"}
         </p>
-        <PrimaryBtn className="mt-3 py-3.5 text-[15px]" onClick={() => void refreshMe()}>
+        <PrimaryBtn className="mt-3 py-4 text-base" onClick={() => void refreshMe()}>
           再試行
         </PrimaryBtn>
       </Card>
@@ -93,7 +91,7 @@ export function HomePage() {
   } else if (meBoot === "loading" && (!me || schedCache === null)) {
     stateCard = (
       <Card>
-        <p className="animate-pulse py-3 text-center text-sm font-semibold text-[#6b7280]">
+        <p className="animate-pulse py-3 text-center text-[15px] font-semibold text-[#6b7280]">
           読み込み中…
         </p>
       </Card>
@@ -103,13 +101,13 @@ export function HomePage() {
     const nm = s?.name ?? "現場";
     stateCard = (
       <Card className="border-[#bfebd2] bg-[#f6fdf9]">
-        <span className="inline-block rounded-full bg-[#e7f8ef] px-2.5 py-0.5 text-[11px] font-extrabold text-[#0a8f4f]">
+        <span className="inline-block rounded-full bg-[#e7f8ef] px-2.5 py-0.5 text-[12.5px] font-extrabold text-[#0a8f4f]">
           在場中
         </span>
-        <h2 className="mt-2 text-[17px] font-extrabold leading-snug">{nm}に在場中</h2>
-        <p className="mt-1 text-[26px] font-extrabold tabular-nums text-[#05a847]">
+        <h2 className="mt-2 text-[19px] font-extrabold leading-snug">{nm}に在場中</h2>
+        <p className="mt-1 text-[28px] font-extrabold tabular-nums text-[#05a847]">
           {Math.floor((t.elapsed_min ?? 0) / 60)}時間{(t.elapsed_min ?? 0) % 60}分
-          <small className="ml-1.5 text-xs font-bold text-[#6b7280]">
+          <small className="ml-1.5 text-[13.5px] font-bold text-[#6b7280]">
             {fmtTime(t.first_in)} 入場
           </small>
         </p>
@@ -118,21 +116,21 @@ export function HomePage() {
             href={`https://maps.google.com/?q=${encodeURIComponent(s.address)}`}
             target="_blank"
             rel="noreferrer"
-            className="mt-1.5 flex items-center gap-1 text-[12.5px] text-[#185fa5]"
+            className="mt-1.5 flex items-center gap-1 text-[14px] text-[#185fa5]"
           >
-            <MapPin className="h-3 w-3" />
+            <MapPin className="h-4 w-4" />
             {s.address}（地図）
           </a>
         )}
         <PrimaryBtn
           danger
-          className="mt-3 py-4 text-[15px]"
+          className="mt-3.5"
           onClick={() => {
             openPunch("home");
             void scanQR();
           }}
         >
-          <QrCode className="h-5 w-5" /> 退場する（QR読取）
+          <QrCode className="h-6 w-6" /> 退場する（QR読取）
         </PrimaryBtn>
         <GhostBtn onClick={() => setTab("report")}>日報を書く</GhostBtn>
       </Card>
@@ -140,17 +138,23 @@ export function HomePage() {
   } else if (t.status === "out") {
     stateCard = (
       <Card>
-        <span className="inline-block rounded-full bg-[#eef1f3] px-2.5 py-0.5 text-[11px] font-extrabold text-[#6b7280]">
+        <span className="inline-block rounded-full bg-[#eef1f3] px-2.5 py-0.5 text-[12.5px] font-extrabold text-[#6b7280]">
           退場済
         </span>
-        <h2 className="mt-2 text-[17px] font-extrabold">本日の作業は終了しました</h2>
-        <p className="mt-1 text-[15px] font-extrabold tabular-nums">
+        <h2 className="mt-2 text-[19px] font-extrabold">本日の作業は終了しました</h2>
+        <p className="mt-1 text-[17px] font-extrabold tabular-nums">
           {fmtTime(t.first_in)} → {fmtTime(t.last_out)}
         </p>
-        <p className="mt-1 text-xs text-[#6b7280]">
+        <p className="mt-1 text-[13.5px] text-[#6b7280]">
           おつかれさまでした。再入場する場合はQRを読み取り直してください
         </p>
-        <GhostBtn onClick={() => setTab("report")}>日報を書く</GhostBtn>
+        {hasReport ? (
+          <GhostBtn onClick={() => setTab("report")}>日報を確認する</GhostBtn>
+        ) : (
+          <PrimaryBtn className="mt-3.5" onClick={() => setTab("report")}>
+            日報を書く
+          </PrimaryBtn>
+        )}
       </Card>
     );
   } else {
@@ -160,14 +164,14 @@ export function HomePage() {
       const nm2 = sc.site ?? st?.name ?? "現場";
       stateCard = (
         <Card>
-          <span className="inline-block rounded-full bg-[#eef1f3] px-2.5 py-0.5 text-[11px] font-extrabold text-[#6b7280]">
+          <span className="inline-block rounded-full bg-[#eef1f3] px-2.5 py-0.5 text-[12.5px] font-extrabold text-[#6b7280]">
             未入場
           </span>
-          <h2 className="mt-2 text-[17px] font-extrabold">本日の現場があります</h2>
-          <p className="mt-1.5 text-[15px] font-extrabold">
+          <h2 className="mt-2 text-[19px] font-extrabold">本日の現場があります</h2>
+          <p className="mt-1.5 text-[17px] font-extrabold">
             {nm2}
             {sc.trade && (
-              <span className="ml-2 text-xs font-semibold text-[#6b7280]">{sc.trade}</span>
+              <span className="ml-2 text-[13.5px] font-semibold text-[#6b7280]">{sc.trade}</span>
             )}
           </p>
           {st?.address && (
@@ -175,20 +179,20 @@ export function HomePage() {
               href={`https://maps.google.com/?q=${encodeURIComponent(st.address)}`}
               target="_blank"
               rel="noreferrer"
-              className="mt-1.5 flex items-center gap-1 text-[12.5px] text-[#185fa5]"
+              className="mt-1.5 flex items-center gap-1 text-[14px] text-[#185fa5]"
             >
-              <MapPin className="h-3 w-3" />
+              <MapPin className="h-4 w-4" />
               {st.address}（地図）
             </a>
           )}
           <PrimaryBtn
-            className="mt-3 py-4 text-[15px]"
+            className="mt-3.5"
             onClick={() => {
               openPunch("home");
               void scanQR();
             }}
           >
-            <QrCode className="h-5 w-5" /> QRで入場する
+            <QrCode className="h-6 w-6" /> QRで入場する
           </PrimaryBtn>
           {st && (
             <GhostBtn onClick={() => openSite(st.id)}>現場詳細を見る</GhostBtn>
@@ -198,24 +202,24 @@ export function HomePage() {
     } else {
       stateCard = (
         <Card>
-          <span className="inline-block rounded-full bg-[#eef1f3] px-2.5 py-0.5 text-[11px] font-extrabold text-[#6b7280]">
+          <span className="inline-block rounded-full bg-[#eef1f3] px-2.5 py-0.5 text-[12.5px] font-extrabold text-[#6b7280]">
             予定なし
           </span>
-          <h2 className="mt-2 text-[17px] font-extrabold text-[#6b7280]">
+          <h2 className="mt-2 text-[19px] font-extrabold text-[#6b7280]">
             本日の予定はありません
           </h2>
-          <p className="mt-1 text-xs text-[#6b7280]">
+          <p className="mt-1 text-[13.5px] text-[#6b7280]">
             予定外の現場に入る場合は、現場を選んでQRで打刻できます
           </p>
-          <PrimaryBtn className="mt-3 py-4 text-[15px]" onClick={() => go("sites")}>
-            <Search className="h-4 w-4" /> 現場を探す
+          <PrimaryBtn className="mt-3.5" onClick={() => go("sites")}>
+            <Search className="h-5 w-5" /> 現場を探す
           </PrimaryBtn>
-          <GhostBtn onClick={() => setTab("me")}>マイページを見る</GhostBtn>
         </Card>
       );
     }
   }
 
+  // 「今日やること」には主ボタンと重複する打刻の行を出さない（押す先を1つに絞るため）。
   const todos: React.ReactNode[] = [];
   if (unrep) {
     todos.push(
@@ -239,40 +243,6 @@ export function HomePage() {
       </TodoRow>,
     );
   }
-  if (t.status === "in") {
-    todos.push(
-      <TodoRow
-        key="out"
-        cls="todo-warn"
-        onClick={() => {
-          openPunch("home");
-          void scanQR();
-        }}
-      >
-        退場打刻を忘れずに（QR→退場ボタン）
-      </TodoRow>,
-    );
-  } else if (!hasPunch && schedToday(schedCache)) {
-    todos.push(
-      <TodoRow
-        key="scan"
-        cls="todo-info"
-        onClick={() => {
-          openPunch("home");
-          void scanQR();
-        }}
-      >
-        入場する（現場に着いたらQR読取）
-      </TodoRow>,
-    );
-  }
-  if (nextSchedAfter(schedCache, today)) {
-    todos.push(
-      <TodoRow key="sched" cls="todo-mute" onClick={() => go("sites")}>
-        次の現場を確認
-      </TodoRow>,
-    );
-  }
   const un = unreadTotal(me);
   if (un) {
     const firstUnreadSite = me?.unread?.find((u) => (u.count || 0) > 0)?.site_id;
@@ -282,10 +252,17 @@ export function HomePage() {
         cls="todo-info"
         onClick={() => {
           if (firstUnreadSite) openSiteChat(firstUnreadSite);
-          else setTab("chat");
+          else setTab("sites");
         }}
       >
-        チャットの未読を確認（{un}件）
+        現場チャットの未読を確認（{un}件）
+      </TodoRow>,
+    );
+  }
+  if (next) {
+    todos.push(
+      <TodoRow key="sched" cls="todo-mute" onClick={() => go("sites")}>
+        次の現場を確認
       </TodoRow>,
     );
   }
@@ -311,14 +288,14 @@ export function HomePage() {
           <Section>次の予定</Section>
           <Card className="!py-3">
             <div className="flex items-center gap-2.5">
-              <span className="shrink-0 rounded-xl bg-[#fff7e6] px-2.5 py-1.5 text-center text-xs font-extrabold tabular-nums text-[#b45309]">
+              <span className="shrink-0 rounded-xl bg-[#fff7e6] px-2.5 py-1.5 text-center text-[13.5px] font-extrabold tabular-nums text-[#b45309]">
                 {parseInt(next.date.slice(5, 7), 10)}/{parseInt(next.date.slice(8, 10), 10)}
                 <br />({next.date && "日月火水木金土"[new Date(`${next.date}T00:00:00+09:00`).getDay()]})
               </span>
               <span className="min-w-0">
-                <span className="block text-sm font-extrabold">{next.sched.site ?? "現場"}</span>
+                <span className="block text-[15px] font-extrabold">{next.sched.site ?? "現場"}</span>
                 {next.sched.trade && (
-                  <span className="text-[11.5px] font-semibold text-[#6b7280]">
+                  <span className="text-[13px] font-semibold text-[#6b7280]">
                     {next.sched.trade}
                   </span>
                 )}
@@ -327,41 +304,14 @@ export function HomePage() {
                 href={gcalUrl(next.sched.site ?? "現場", next.sched.start_date, next.sched.end_date)}
                 target="_blank"
                 rel="noreferrer"
-                className="ml-auto flex shrink-0 items-center gap-1 rounded-[11px] border border-[#e6eaee] bg-white px-2.5 py-2 text-[11px] font-extrabold whitespace-nowrap text-[#185fa5]"
+                className="ml-auto flex shrink-0 items-center gap-1 rounded-[11px] border border-[#e6eaee] bg-white px-2.5 py-2 text-[12.5px] font-extrabold whitespace-nowrap text-[#185fa5]"
               >
-                <Calendar className="h-3.5 w-3.5" />＋ カレンダー
+                <Calendar className="h-4 w-4" />＋ カレンダー
               </a>
             </div>
           </Card>
         </>
       )}
-
-      <Card className="grid grid-cols-3 gap-2 !p-3.5">
-        <button
-          type="button"
-          onClick={() => go("sites")}
-          className="flex flex-col items-center gap-1.5 rounded-[14px] border border-[#e6eaee] bg-white py-3 text-xs font-extrabold"
-        >
-          <Search className="h-4 w-4 text-[#05a847]" />
-          現場を探す
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("report")}
-          className="flex flex-col items-center gap-1.5 rounded-[14px] border border-[#e6eaee] bg-white py-3 text-xs font-extrabold"
-        >
-          <NotebookPen className="h-4 w-4 text-[#05a847]" />
-          日報を書く
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("chat")}
-          className="flex flex-col items-center gap-1.5 rounded-[14px] border border-[#e6eaee] bg-white py-3 text-xs font-extrabold"
-        >
-          <MessageCircle className="h-4 w-4 text-[#05a847]" />
-          チャットを見る
-        </button>
-      </Card>
     </div>
   );
 }

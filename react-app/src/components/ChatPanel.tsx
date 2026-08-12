@@ -3,27 +3,19 @@ import { useGenba } from "../context/GenbaContext";
 import { CHAT_QUICK_TEXTS } from "../lib/constants";
 import type { ChatMessage } from "../lib/types";
 
-export function ChatPanel({
-  siteId,
-  siteName,
-}: {
-  siteId?: string;
-  siteName?: string;
-}) {
-  const { loadChat, sendChat, chatSiteId, setTab, view, siteTab } = useGenba();
+/** 現場の「連絡」スレッド。現場詳細の中でのみ使う（現場単位に統一）。 */
+export function ChatPanel({ siteId }: { siteId: string }) {
+  const { loadChat, sendChat, setTab, view, siteTab } = useGenba();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [mine, setMine] = useState<string | undefined>();
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [resolvedSite, setResolvedSite] = useState(siteName ?? "");
   const sinceRef = useRef<string | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
 
-  const sid = siteId ?? chatSiteId;
-  const stickyComposer =
-    (view === "site" && siteTab === "chat") ||
-    (view === "chat" && !!chatSiteId);
+  const sid = siteId;
+  const stickyComposer = view === "site" && siteTab === "chat";
 
   useEffect(() => {
     sinceRef.current = null;
@@ -51,7 +43,6 @@ export function ChatPanel({
         }
         setError(null);
         setMine(j.mine);
-        if (j.site_name) setResolvedSite(j.site_name);
         if (j.messages.length) {
           setMessages((prev) => {
             const next = sinceRef.current ? [...prev, ...j.messages] : j.messages;
@@ -107,14 +98,14 @@ export function ChatPanel({
             key={txt}
             type="button"
             onClick={() => setInput(txt)}
-            className="shrink-0 rounded-full border border-[#e6eaee] bg-white px-3.5 py-2 text-[12.5px] font-bold whitespace-nowrap"
+            className="shrink-0 rounded-full border border-[#e6eaee] bg-white px-3.5 py-2 text-[14px] font-bold whitespace-nowrap"
           >
             {txt}
           </button>
         ))}
       </div>
       {sendError && (
-        <p className="mt-1.5 text-center text-[12px] font-bold text-[#cf3a31]">{sendError}</p>
+        <p className="mt-1.5 text-center text-[13.5px] font-bold text-[#cf3a31]">{sendError}</p>
       )}
       <div className="mt-2 flex gap-2">
         <input
@@ -137,11 +128,6 @@ export function ChatPanel({
 
   return (
     <div className={stickyComposer ? "pb-[calc(8.5rem+env(safe-area-inset-bottom))]" : ""}>
-      {!siteId && (
-        <p className="mb-2.5 px-1 text-xs font-semibold text-[#6b7280]">
-          現場：{resolvedSite || "…"}
-        </p>
-      )}
       <div
         ref={boxRef}
         className={`flex flex-col gap-2 overflow-auto rounded-2xl border border-[#e6eaee] bg-white p-3 ${
@@ -156,7 +142,7 @@ export function ChatPanel({
             <button
               type="button"
               onClick={() => setTab("sites")}
-              className="rounded-2xl bg-[#06c755] px-4 py-2.5 text-[13px] font-extrabold text-white"
+              className="rounded-2xl bg-[#06c755] px-4 py-2.5 text-[14px] font-extrabold text-white"
             >
               現場一覧へ
             </button>
@@ -182,20 +168,20 @@ export function ChatPanel({
                   <div className="rounded-[14px_14px_3px_14px] bg-[#06c755] px-3 py-2 text-sm leading-snug whitespace-pre-wrap text-white">
                     {m.body}
                   </div>
-                  <div className="mt-0.5 text-right text-[9.5px] text-[#9aa4ad]">{t}</div>
+                  <div className="mt-0.5 text-right text-[11px] text-[#9aa4ad]">{t}</div>
                 </div>
               );
             }
             return (
               <div key={i} className="max-w-[82%] self-start">
-                <div className="mb-0.5 ml-0.5 text-[10.5px] font-semibold text-[#6b7280]">
+                <div className="mb-0.5 ml-0.5 text-[12px] font-semibold text-[#6b7280]">
                   {m.sender_name ?? (isKan ? "監督" : "職人")}
                   {isKan && <span className="text-[#185fa5]"> 監督</span>}
                 </div>
                 <div className="rounded-[3px_14px_14px_14px] border border-[#e6eaee] bg-white px-3 py-2 text-sm leading-snug whitespace-pre-wrap">
                   {m.body}
                 </div>
-                <div className="mt-0.5 ml-0.5 text-[9.5px] text-[#9aa4ad]">{t}</div>
+                <div className="mt-0.5 ml-0.5 text-[11px] text-[#9aa4ad]">{t}</div>
               </div>
             );
           })

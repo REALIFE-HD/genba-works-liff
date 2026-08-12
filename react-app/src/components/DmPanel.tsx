@@ -14,14 +14,8 @@ function timeAgoOrTime(iso: string | null): string {
 }
 
 export function DmPanel() {
-  const { setDmThreadOpen } = useGenba();
   const [mode, setMode] = useState<"list" | "picker" | "thread">("list");
   const [activeWorker, setActiveWorker] = useState<{ id: string; name: string } | null>(null);
-
-  useEffect(() => {
-    setDmThreadOpen(mode === "thread");
-    return () => setDmThreadOpen(false);
-  }, [mode, setDmThreadOpen]);
 
   if (mode === "thread" && activeWorker) {
     return (
@@ -108,21 +102,21 @@ function DmConversationList({
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5">
-                  <span className="truncate text-[13.5px] font-extrabold">{c.name}</span>
+                  <span className="truncate text-[14.5px] font-extrabold">{c.name}</span>
                   {c.company_name && (
-                    <span className="shrink-0 text-[10.5px] font-semibold text-[#6b7280]">
+                    <span className="shrink-0 text-[12px] font-semibold text-[#6b7280]">
                       {c.company_name}
                     </span>
                   )}
                 </span>
-                <span className="mt-0.5 block truncate text-xs text-[#6b7280]">
+                <span className="mt-0.5 block truncate text-[13.5px] text-[#6b7280]">
                   {c.last_body || "（メッセージなし）"}
                 </span>
               </span>
               <span className="flex shrink-0 flex-col items-end gap-1">
-                <span className="text-[10px] text-[#9aa4ad]">{timeAgoOrTime(c.last_at)}</span>
+                <span className="text-[11.5px] text-[#9aa4ad]">{timeAgoOrTime(c.last_at)}</span>
                 {c.unread > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#e8453c] px-1 text-[10px] font-extrabold text-white">
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#e8453c] px-1 text-[11.5px] font-extrabold text-white">
                     {c.unread > 99 ? "99+" : c.unread}
                   </span>
                 )}
@@ -167,7 +161,7 @@ function DmWorkerPicker({
       <button
         type="button"
         onClick={onBack}
-        className="mb-2 inline-flex items-center gap-1 bg-transparent px-1 py-1.5 text-[13.5px] font-bold text-[#6b7280]"
+        className="mb-2 inline-flex items-center gap-1 bg-transparent px-1 py-1.5 text-[14.5px] font-bold text-[#6b7280]"
       >
         ‹ 戻る
       </button>
@@ -194,8 +188,8 @@ function DmWorkerPicker({
                 {w.name.slice(0, 1)}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13.5px] font-extrabold">{w.name}</span>
-                <span className="block truncate text-xs text-[#6b7280]">
+                <span className="block truncate text-[14.5px] font-extrabold">{w.name}</span>
+                <span className="block truncate text-[13.5px] text-[#6b7280]">
                   {w.company_name ?? ""}
                   {w.trade ? `・${w.trade}` : ""}
                 </span>
@@ -274,11 +268,11 @@ function DmThread({
       <button
         type="button"
         onClick={onBack}
-        className="mb-2 inline-flex items-center gap-1 bg-transparent px-1 py-1.5 text-[13.5px] font-bold text-[#6b7280]"
+        className="mb-2 inline-flex items-center gap-1 bg-transparent px-1 py-1.5 text-[14.5px] font-bold text-[#6b7280]"
       >
         ‹ 一覧へ
       </button>
-      <p className="mb-2.5 px-1 text-xs font-semibold text-[#6b7280]">{otherName} さんとの連絡</p>
+      <p className="mb-2.5 px-1 text-[13.5px] font-semibold text-[#6b7280]">{otherName} さんとの連絡</p>
       <div
         ref={boxRef}
         className="flex min-h-[280px] max-h-[54vh] flex-col gap-2 overflow-auto rounded-2xl border border-[#e6eaee] bg-white p-3"
@@ -297,14 +291,14 @@ function DmThread({
                 <div className="rounded-[14px_14px_3px_14px] bg-[#06c755] px-3 py-2 text-sm leading-snug whitespace-pre-wrap text-white">
                   {m.body}
                 </div>
-                <div className="mt-0.5 text-right text-[9.5px] text-[#9aa4ad]">{t}</div>
+                <div className="mt-0.5 text-right text-[11px] text-[#9aa4ad]">{t}</div>
               </div>
             ) : (
               <div key={m.id} className="max-w-[82%] self-start">
                 <div className="rounded-[3px_14px_14px_14px] border border-[#e6eaee] bg-white px-3 py-2 text-sm leading-snug whitespace-pre-wrap">
                   {m.body}
                 </div>
-                <div className="mt-0.5 ml-0.5 text-[9.5px] text-[#9aa4ad]">{t}</div>
+                <div className="mt-0.5 ml-0.5 text-[11px] text-[#9aa4ad]">{t}</div>
               </div>
             );
           })

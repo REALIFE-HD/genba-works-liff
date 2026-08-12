@@ -1,25 +1,44 @@
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, MessageCircle } from "lucide-react";
 import { useGenba } from "../context/GenbaContext";
-import { Card, EmptyState, Section } from "../components/ui/Card";
+import { BackBtn, Card, EmptyState, Section } from "../components/ui/Card";
 import { fmtTime } from "../lib/format";
 
 export function MyPage() {
-  const { me, displayName, setTab } = useGenba();
+  const { me, displayName, setTab, go } = useGenba();
   const name = me?.worker?.name || displayName || "職人";
   const month = me?.month ?? {};
   const history = me?.history ?? [];
 
   return (
     <div>
+      <BackBtn onClick={() => go("home")} label="ホームへ" />
+
       <Card className="flex items-center gap-3 !py-4">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#06c755] text-lg font-extrabold text-white">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#06c755] text-xl font-extrabold text-white">
           {name.trim().slice(0, 1)}
         </span>
         <span className="min-w-0">
-          <span className="block text-base font-extrabold">{name}</span>
-          <span className="text-xs text-[#6b7280]">現場WORKS 職人アカウント</span>
+          <span className="block text-[17px] font-extrabold">{name}</span>
+          <span className="text-[13.5px] text-[#6b7280]">現場WORKS 職人アカウント</span>
         </span>
       </Card>
+
+      <button
+        type="button"
+        onClick={() => go("chat")}
+        className="mb-4 flex w-full items-center gap-3 rounded-[20px] border border-[#e6eaee] bg-white p-4 text-left shadow-sm active:bg-[#f8faf9]"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#eef6ff] text-[#185fa5]">
+          <MessageCircle className="h-5 w-5" strokeWidth={2.2} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] font-extrabold">個人メッセージ</span>
+          <span className="block text-[13px] font-semibold text-[#6b7280]">
+            職人どうしの1対1の連絡
+          </span>
+        </span>
+        <span className="shrink-0 text-[#c5ccd2]">›</span>
+      </button>
 
       <Section>今月の出面</Section>
       <div className="mb-4 grid grid-cols-3 gap-2.5">
@@ -35,7 +54,7 @@ export function MyPage() {
             <div className="text-2xl font-extrabold tabular-nums">
               {month[key as keyof typeof month] ?? "–"}
             </div>
-            <div className="mt-0.5 text-[11px] font-semibold text-[#6b7280]">{label}</div>
+            <div className="mt-0.5 text-[12.5px] font-semibold text-[#6b7280]">{label}</div>
           </div>
         ))}
       </div>
@@ -63,13 +82,13 @@ export function MyPage() {
                 key={r.date}
                 className="flex items-center gap-3 border-b border-[#eef1f3] py-3 last:border-0"
               >
-                <span className="w-[50px] text-sm font-extrabold">{dd}</span>
+                <span className="w-[50px] text-[15px] font-extrabold">{dd}</span>
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
-                <span className="text-[13px] tabular-nums text-[#6b7280]">
+                <span className="text-[14px] tabular-nums text-[#6b7280]">
                   {fmtTime(r.first_in)} → {r.last_out ? fmtTime(r.last_out) : "在場中"}
                 </span>
                 <span
-                  className={`ml-auto rounded-full px-2 py-0.5 text-[10.5px] font-extrabold ${
+                  className={`ml-auto rounded-full px-2 py-0.5 text-[12px] font-extrabold ${
                     r.has_report
                       ? "bg-[#e7f8ef] text-[#0a8f4f]"
                       : "bg-[#fdecea] text-[#e8453c]"

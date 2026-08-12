@@ -16,7 +16,7 @@ export function Card({
 
 export function Section({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="mb-2.5 flex items-center gap-1.5 px-1 text-xs font-extrabold tracking-wide text-[#6b7280]">
+    <h3 className="mb-2.5 flex items-center gap-1.5 px-1 text-[13.5px] font-extrabold tracking-wide text-[#6b7280]">
       {children}
     </h3>
   );
@@ -44,7 +44,7 @@ export function StatusBar({
         ? "text-[#0a8f4f]"
         : "text-[#14181b]";
   return (
-    <div className="flex items-start gap-2.5 rounded-2xl border border-[#e6eaee] bg-white px-4 py-3.5 text-[13.5px] leading-relaxed shadow-sm">
+    <div className="flex items-start gap-2.5 rounded-2xl border border-[#e6eaee] bg-white px-4 py-3.5 text-[14.5px] leading-relaxed shadow-sm">
       <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dot}`} />
       <span className={`whitespace-pre-wrap break-all font-semibold ${msg}`}>
         {message}
@@ -58,7 +58,7 @@ export function BackBtn({ onClick, label }: { onClick: () => void; label: string
     <button
       type="button"
       onClick={onClick}
-      className="mb-1 inline-flex items-center gap-1 bg-transparent px-1 py-1.5 text-[13.5px] font-bold text-[#6b7280]"
+      className="mb-1 inline-flex items-center gap-1 bg-transparent px-1 py-1.5 text-[14.5px] font-bold text-[#6b7280]"
     >
       ‹ {label}
     </button>
@@ -134,7 +134,7 @@ export function EmptyState({
       )}
       <p className="text-[15px] font-extrabold text-[#14181b]">{title}</p>
       {body && (
-        <p className="mx-auto mt-1.5 max-w-[260px] text-[12.5px] leading-relaxed font-semibold text-[#6b7280]">
+        <p className="mx-auto mt-1.5 max-w-[260px] text-[14px] leading-relaxed font-semibold text-[#6b7280]">
           {body}
         </p>
       )}
@@ -142,7 +142,7 @@ export function EmptyState({
         <button
           type="button"
           onClick={onAction}
-          className="mt-4 inline-flex items-center justify-center rounded-xl bg-[#06c755] px-4 py-2.5 text-[13px] font-extrabold text-white"
+          className="mt-4 inline-flex items-center justify-center rounded-xl bg-[#06c755] px-4 py-2.5 text-[14px] font-extrabold text-white"
         >
           {actionLabel}
         </button>

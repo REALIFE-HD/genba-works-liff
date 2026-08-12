@@ -27,12 +27,12 @@ export function RegisterOverlay() {
       <div className="mx-auto max-w-[460px] px-4 py-6 pb-8">
         <div className="mb-4 mt-2 text-center">
           <div className="text-[19px] font-extrabold">はじめての方の登録</div>
-          <div className="mt-1 text-[13px] text-[#6b7280]">
+          <div className="mt-1 text-[14px] text-[#6b7280]">
             会社と担当工事を選ぶだけ。承認は不要です。
           </div>
         </div>
         <Card>
-          <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">
+          <label className="mb-1.5 block text-[13.5px] font-bold text-[#6b7280]">
             所属会社（協力会社）
           </label>
           <select
@@ -47,7 +47,7 @@ export function RegisterOverlay() {
             ))}
           </select>
           <div className="h-3.5" />
-          <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">担当工事</label>
+          <label className="mb-1.5 block text-[13.5px] font-bold text-[#6b7280]">担当工事</label>
           <select
             value={trade}
             onChange={(e) => setTrade(e.target.value)}
@@ -60,7 +60,7 @@ export function RegisterOverlay() {
             ))}
           </select>
           <div className="h-3.5" />
-          <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">お名前（任意）</label>
+          <label className="mb-1.5 block text-[13.5px] font-bold text-[#6b7280]">お名前（任意）</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}

@@ -97,6 +97,7 @@ export type ReportPhoto = { data: string; type: PhotoType };
 
 export type ViewKey = "home" | "punch" | "sites" | "site" | "report" | "chat" | "my";
 
-export type TabKey = "home" | "sites" | "report" | "chat" | "me";
+/** 職人向けは「ホーム / 現場 / 報告」の3タブのみ。マイ・個人連絡は view として保持する。 */
+export type TabKey = "home" | "sites" | "report";
 
 export type SiteTabKey = "ov" | "photo" | "plan" | "chat" | "report";

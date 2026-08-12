@@ -1,7 +1,5 @@
-import { useState } from "react";
 import {
   Calendar,
-  ChevronDown,
   MapPin,
   MessageCircle,
   Navigation,
@@ -12,10 +10,8 @@ import {
   Card,
   PrimaryBtn,
   Section,
-  StatusBar,
 } from "../components/ui/Card";
 import { ChatPanel } from "../components/ChatPanel";
-import { TRADES } from "../lib/constants";
 import { fmtMD, fmtTime, gcalUrl, jstToday, navUrl } from "../lib/format";
 import {
   siteMeta,
@@ -28,7 +24,7 @@ const SITE_TABS: [SiteTabKey, string][] = [
   ["ov", "概要"],
   ["photo", "写真"],
   ["plan", "図面"],
-  ["chat", "チャット"],
+  ["chat", "連絡"],
   ["report", "日報"],
 ];
 
@@ -43,22 +39,10 @@ export function SiteDetailPage() {
     openPunch,
     scanQR,
     toggleScheduleDay,
-    createSchedule,
     openReportForSite,
     PHOTO_TYPE_COLORS,
     PHOTO_TYPE_LABELS,
   } = useGenba();
-
-  const [scStart, setScStart] = useState("");
-  const [scEnd, setScEnd] = useState("");
-  const [scTrade, setScTrade] = useState<string>(TRADES[0]);
-  const [scHead, setScHead] = useState("");
-  const [scStatus, setScStatus] = useState<{ message: string; kind: "" | "ok" | "err" | "busy" }>({
-    message: "",
-    kind: "",
-  });
-  const [scBusy, setScBusy] = useState(false);
-  const [schedFormOpen, setSchedFormOpen] = useState(false);
 
   if (!curSite) return null;
   const m = siteMeta(me, schedCache, curSite);
@@ -71,32 +55,6 @@ export function SiteDetailPage() {
     (best, r) => (!best || r.date > best ? r.date : best),
     null,
   );
-
-  const handleCreateSched = async () => {
-    if (!scStart || !scEnd) {
-      setScStatus({ message: "期間を入力してください。", kind: "err" });
-      return;
-    }
-    if (scStart > scEnd) {
-      setScStatus({ message: "終了日は開始日以降にしてください。", kind: "err" });
-      return;
-    }
-    setScBusy(true);
-    setScStatus({ message: "登録中…", kind: "busy" });
-    const j = await createSchedule(
-      curSite.id,
-      scStart,
-      scEnd,
-      scTrade,
-      scHead ? parseInt(scHead, 10) : undefined,
-    );
-    if (j.ok) {
-      setScStatus({ message: "登録しました。", kind: "ok" });
-    } else {
-      setScStatus({ message: "登録に失敗（" + (j.error ?? "") + "）", kind: "err" });
-    }
-    setScBusy(false);
-  };
 
   const chatUnread = unreadFor(me, curSite.id);
 
@@ -111,11 +69,11 @@ export function SiteDetailPage() {
           <div className="text-lg leading-snug font-extrabold">
             {curSite.name}
             {m.inNow ? (
-              <span className="ml-1.5 inline-block rounded-full bg-[#e7f8ef] px-2 py-0.5 text-[10px] font-extrabold text-[#0a8f4f]">
+              <span className="ml-1.5 inline-block rounded-full bg-[#e7f8ef] px-2 py-0.5 text-[11.5px] font-extrabold text-[#0a8f4f]">
                 在場中
               </span>
             ) : m.next ? (
-              <span className="ml-1.5 inline-block rounded-full bg-[#fff7e6] px-2 py-0.5 text-[10px] font-extrabold text-[#b45309]">
+              <span className="ml-1.5 inline-block rounded-full bg-[#fff7e6] px-2 py-0.5 text-[11.5px] font-extrabold text-[#b45309]">
                 {m.next.date === jstToday() ? "今日" : fmtMD(m.next.date)} 予定
               </span>
             ) : null}
@@ -126,7 +84,7 @@ export function SiteDetailPage() {
                 href={`https://maps.google.com/?q=${encodeURIComponent(curSite.address)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-1 inline-flex items-center gap-1 text-[12.5px] text-[#185fa5]"
+                className="mt-1 inline-flex items-center gap-1 text-[14px] text-[#185fa5]"
               >
                 <MapPin className="h-3 w-3" />
                 {curSite.address}（地図）
@@ -136,7 +94,7 @@ export function SiteDetailPage() {
                   href={navUrl(curSite.address)}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 rounded-[11px] border border-[#cfe3fa] bg-[#eef6ff] px-3 py-2 text-xs font-extrabold text-[#2563eb]"
+                  className="mt-2 inline-flex items-center gap-1 rounded-[11px] border border-[#cfe3fa] bg-[#eef6ff] px-3 py-2 text-[13.5px] font-extrabold text-[#2563eb]"
                 >
                   <Navigation className="h-3.5 w-3.5" /> ナビを開始
                 </a>
@@ -167,7 +125,7 @@ export function SiteDetailPage() {
                 key={key}
                 type="button"
                 onClick={() => setSiteTab(key)}
-                className={`relative shrink-0 rounded-full px-4 py-2.5 text-[13px] font-bold ${
+                className={`relative shrink-0 rounded-full px-4 py-2.5 text-[14px] font-bold ${
                   siteTab === key
                     ? "bg-[#06c755] text-white"
                     : "bg-white text-[#6b7280] shadow-[inset_0_0_0_1px_#e6eaee]"
@@ -189,26 +147,26 @@ export function SiteDetailPage() {
             <button
               type="button"
               onClick={() => setSiteTab("chat")}
-              className="mb-3 flex w-full items-center gap-2 rounded-[14px] border border-[#cfead9] bg-[#e7f8ef] px-3.5 py-3 text-left text-[13.5px] font-extrabold text-[#0a8f4f]"
+              className="mb-3 flex w-full items-center gap-2 rounded-[14px] border border-[#cfead9] bg-[#e7f8ef] px-3.5 py-3 text-left text-[14.5px] font-extrabold text-[#0a8f4f]"
             >
               <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2.4} />
-              未読{chatUnread}件 · チャットを見る
+              未読{chatUnread}件 · 連絡を見る
               <span className="ml-auto opacity-55">›</span>
             </button>
           )}
           {t.site_id === curSite.id && t.status === "in" && (
-            <div className="mb-3 rounded-[14px] bg-[#e7f8ef] px-3.5 py-3 text-[13.5px] font-bold text-[#0a8f4f]">
+            <div className="mb-3 rounded-[14px] bg-[#e7f8ef] px-3.5 py-3 text-[14.5px] font-bold text-[#0a8f4f]">
               この現場に在場中（{Math.floor((t.elapsed_min ?? 0) / 60)}時間
               {(t.elapsed_min ?? 0) % 60}分）
             </div>
           )}
           {workersToday(me, curSite.id) > 0 && (
-            <div className="mb-3 rounded-[14px] bg-[#eef6ff] px-3.5 py-3 text-[13.5px] font-bold text-[#185fa5]">
+            <div className="mb-3 rounded-[14px] bg-[#eef6ff] px-3.5 py-3 text-[14.5px] font-bold text-[#185fa5]">
               今日の職人：{workersToday(me, curSite.id)}人
             </div>
           )}
           <PrimaryBtn
-            className="mb-3.5 py-4 text-[15px]"
+            className="mb-3.5"
             onClick={() => {
               openPunch("site");
               void scanQR();
@@ -220,7 +178,9 @@ export function SiteDetailPage() {
           <Section>工程（入らない日はタップで切替）</Section>
           <Card className="!p-3.5">
             {!scheds.length ? (
-              <p className="py-1.5 text-center text-sm text-[#6b7280]">予定はありません</p>
+              <p className="py-1.5 text-center text-[15px] text-[#6b7280]">
+                予定はありません（予定は監督が登録します）
+              </p>
             ) : (
               scheds.map((s, i) => (
                 <div
@@ -240,7 +200,7 @@ export function SiteDetailPage() {
                           key={d.date}
                           type="button"
                           onClick={() => void toggleScheduleDay(s.id, d.date, !dec)}
-                          className="cursor-pointer rounded-[11px] px-3 py-2.5 text-[13px] font-bold"
+                          className="cursor-pointer rounded-[11px] px-3 py-2.5 text-[14px] font-bold"
                           style={{
                             background: dec ? "#fdecea" : "#e7f8ef",
                             color: dec ? "#cf3a31" : "#0a8f4f",
@@ -256,7 +216,7 @@ export function SiteDetailPage() {
                     href={gcalUrl(curSite.name, s.start_date, s.end_date)}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-[12.5px] font-bold text-[#185fa5]"
+                    className="mt-2 inline-flex items-center gap-1 text-[14px] font-bold text-[#185fa5]"
                   >
                     <Calendar className="h-3.5 w-3.5" /> ＋ スマホのカレンダーに追加
                   </a>
@@ -274,7 +234,7 @@ export function SiteDetailPage() {
                 "report",
               ] as const,
               [
-                "この現場のチャットを開く" +
+                "この現場の連絡を開く" +
                   (chatUnread ? "（未読" + chatUnread + "件）" : ""),
                 "chat",
               ] as const,
@@ -283,84 +243,13 @@ export function SiteDetailPage() {
                 key={pane}
                 role="button"
                 onClick={() => setSiteTab(pane)}
-                className="mb-2 flex cursor-pointer items-center rounded-[14px] bg-[#f1f4f2] px-3.5 py-3 text-[13.5px] font-bold text-[#6b7280] last:mb-0"
+                className="mb-2 flex cursor-pointer items-center rounded-[14px] bg-[#f1f4f2] px-3.5 py-3 text-[14.5px] font-bold text-[#6b7280] last:mb-0"
               >
                 {txt}
                 <span className="ml-auto opacity-55">›</span>
               </div>
             ))}
           </Card>
-
-          <button
-            type="button"
-            onClick={() => setSchedFormOpen((v) => !v)}
-            className="mb-2.5 flex w-full items-center gap-1.5 px-1 text-left text-xs font-extrabold tracking-wide text-[#6b7280]"
-          >
-            この現場に予定を登録
-            <ChevronDown
-              className={`ml-auto h-4 w-4 transition-transform ${schedFormOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          {schedFormOpen && (
-            <Card className="!p-3.5">
-              <div className="flex gap-2.5">
-                <div className="flex-1">
-                  <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">開始日</label>
-                  <input
-                    type="date"
-                    value={scStart}
-                    onChange={(e) => setScStart(e.target.value)}
-                    className="w-full rounded-[11px] border border-[#e6eaee] p-2.5 text-base"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">終了日</label>
-                  <input
-                    type="date"
-                    value={scEnd}
-                    onChange={(e) => setScEnd(e.target.value)}
-                    className="w-full rounded-[11px] border border-[#e6eaee] p-2.5 text-base"
-                  />
-                </div>
-              </div>
-              <div className="mt-2.5 flex gap-2.5">
-                <div className="flex-1">
-                  <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">担当工事</label>
-                  <select
-                    value={scTrade}
-                    onChange={(e) => setScTrade(e.target.value)}
-                    className="w-full rounded-[11px] border border-[#e6eaee] bg-white p-2.5 text-base"
-                  >
-                    {TRADES.map((x) => (
-                      <option key={x}>{x}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="w-[84px] shrink-0">
-                  <label className="mb-1.5 block text-xs font-bold text-[#6b7280]">人数</label>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    value={scHead}
-                    onChange={(e) => setScHead(e.target.value)}
-                    className="w-full rounded-[11px] border border-[#e6eaee] p-2.5 text-base"
-                  />
-                </div>
-              </div>
-              <PrimaryBtn
-                className="mt-3 py-4 text-base"
-                disabled={scBusy}
-                onClick={() => void handleCreateSched()}
-              >
-                予定を登録
-              </PrimaryBtn>
-              {scStatus.message && (
-                <div className="mt-3">
-                  <StatusBar message={scStatus.message} kind={scStatus.kind} />
-                </div>
-              )}
-            </Card>
-          )}
         </>
       )}
 
@@ -386,7 +275,7 @@ export function SiteDetailPage() {
                     >
                       <img src={p.url} alt="" className="h-full w-full object-cover" loading="lazy" />
                       <span
-                        className="absolute right-0 bottom-0 left-0 h-[18px] text-center text-[9.5px] leading-[18px] font-extrabold text-white"
+                        className="absolute right-0 bottom-0 left-0 h-[18px] text-center text-[11px] leading-[18px] font-extrabold text-white"
                         style={{
                           background: PHOTO_TYPE_COLORS[p.type] ?? "#0a8f4f",
                         }}
@@ -406,7 +295,7 @@ export function SiteDetailPage() {
           <Section>図面・資料</Section>
           <Card className="py-7 text-center">
             <p className="text-sm font-bold text-[#6b7280]">図面はまだ登録されていません</p>
-            <p className="mt-1.5 text-xs text-[#9aa4ad]">
+            <p className="mt-1.5 text-[13.5px] text-[#9aa4ad]">
               監督が管理画面から図面を登録すると、ここに表示されます
             </p>
           </Card>
@@ -414,7 +303,7 @@ export function SiteDetailPage() {
       )}
 
       {siteTab === "chat" && (
-        <ChatPanel siteId={curSite.id} siteName={curSite.name} />
+        <ChatPanel siteId={curSite.id} />
       )}
 
       {siteTab === "report" && (
@@ -435,14 +324,14 @@ export function SiteDetailPage() {
                   key={r.date}
                   className={i > 0 ? "mt-2.5 border-t border-[#eef1f3] pt-2.5" : ""}
                 >
-                  <div className="text-[13.5px] font-extrabold">
+                  <div className="text-[14.5px] font-extrabold">
                     {fmtMD(r.date)}{" "}
-                    <span className="text-xs font-semibold text-[#6b7280]">
+                    <span className="text-[13.5px] font-semibold text-[#6b7280]">
                       写真{(r.photos ?? []).length}枚
                     </span>
                   </div>
                   {r.body && (
-                    <div className="mt-0.5 text-[12.5px] leading-snug text-[#6b7280]">
+                    <div className="mt-0.5 text-[14px] leading-snug text-[#6b7280]">
                       {r.body}
                     </div>
                   )}
@@ -473,11 +362,11 @@ export function SiteDetailPage() {
                       className="h-2 w-2 shrink-0 rounded-full"
                       style={{ background: color }}
                     />
-                    <span className="text-[13px] tabular-nums text-[#6b7280]">
+                    <span className="text-[14px] tabular-nums text-[#6b7280]">
                       {fmtTime(r.first_in)} → {r.last_out ? fmtTime(r.last_out) : "在場中"}
                     </span>
                     <span
-                      className={`ml-auto rounded-full px-2 py-0.5 text-[10.5px] font-extrabold ${
+                      className={`ml-auto rounded-full px-2 py-0.5 text-[12px] font-extrabold ${
                         r.has_report
                           ? "bg-[#e7f8ef] text-[#0a8f4f]"
                           : "bg-[#fdecea] text-[#e8453c]"

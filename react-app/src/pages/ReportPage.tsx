@@ -93,7 +93,7 @@ export function ReportPage() {
 
       {needsSitePicker && (
         <Card>
-          <p className="mb-2.5 text-xs font-bold text-[#6b7280]">
+          <p className="mb-2.5 text-[13.5px] font-bold text-[#6b7280]">
             現場（本日の打刻が無いため選択してください）
           </p>
           <select
@@ -112,7 +112,7 @@ export function ReportPage() {
       )}
 
       <Card>
-        <p className="mb-2.5 text-xs font-bold text-[#6b7280]">
+        <p className="mb-2.5 text-[13.5px] font-bold text-[#6b7280]">
           写真{" "}
           <span className="font-medium">
             （サムネイルのラベルをタップで 施工前/施工中/完了 を切替）
@@ -129,7 +129,7 @@ export function ReportPage() {
                 type="button"
                 aria-label={`写真${i + 1}の区分を切替（現在: ${PHOTO_TYPE_LABELS[p.type]}）`}
                 onClick={() => cyclePhotoType(i)}
-                className="absolute right-0 bottom-0 left-0 h-[34px] text-center text-[13px] leading-[34px] font-extrabold text-white"
+                className="absolute right-0 bottom-0 left-0 h-[34px] text-center text-[14px] leading-[34px] font-extrabold text-white"
                 style={{ background: PHOTO_TYPE_COLORS[p.type] }}
               >
                 {PHOTO_TYPE_LABELS[p.type]}
@@ -147,7 +147,7 @@ export function ReportPage() {
         </div>
         <div className="mt-2.5 flex gap-2.5">
           <label
-            className={`flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-[#06c755] bg-[#f3fcf6] px-2 py-4 text-[13.5px] font-bold text-[#05a847] ${
+            className={`flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-[#06c755] bg-[#f3fcf6] px-2 py-4 text-[14.5px] font-bold text-[#05a847] ${
               photoBusy ? "opacity-50" : "cursor-pointer"
             }`}
           >
@@ -167,7 +167,7 @@ export function ReportPage() {
             />
           </label>
           <label
-            className={`flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-[#94a3b8] bg-[#f8fafc] px-2 py-4 text-[13.5px] font-bold text-[#475569] ${
+            className={`flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-[#94a3b8] bg-[#f8fafc] px-2 py-4 text-[14.5px] font-bold text-[#475569] ${
               photoBusy ? "opacity-50" : "cursor-pointer"
             }`}
           >
@@ -187,12 +187,12 @@ export function ReportPage() {
           </label>
         </div>
         {photoNote && (
-          <p className="mt-2 text-[11.5px] font-bold text-[#b45309]">{photoNote}</p>
+          <p className="mt-2 text-[13px] font-bold text-[#b45309]">{photoNote}</p>
         )}
       </Card>
 
       <Card>
-        <p className="mb-2.5 text-xs font-bold text-[#6b7280]">作業内容</p>
+        <p className="mb-2.5 text-[13.5px] font-bold text-[#6b7280]">作業内容</p>
         <textarea
           value={repBody}
           onChange={(e) => setRepBody(e.target.value)}
@@ -204,7 +204,7 @@ export function ReportPage() {
             <button
               type="button"
               onClick={toggleVoice}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#e6eaee] bg-white py-3 text-[12.5px] font-extrabold ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#e6eaee] bg-white py-3 text-[14px] font-extrabold ${
                 voiceOn ? "border-[#f6c8c4] bg-[#fdecea] text-[#cf3a31]" : ""
               }`}
             >
@@ -216,7 +216,7 @@ export function ReportPage() {
             type="button"
             disabled={aiBusy}
             onClick={() => void aiDraft()}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#e6eaee] bg-white py-3 text-[12.5px] font-extrabold disabled:text-[#aab2b9]"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#e6eaee] bg-white py-3 text-[14px] font-extrabold disabled:text-[#aab2b9]"
           >
             <Sparkles className="h-4 w-4" />
             {aiBusy ? "作成中…" : "AIで下書きを作成"}
@@ -230,8 +230,8 @@ export function ReportPage() {
 
       {repConfirmOpen && (
         <Card className="mt-3.5 border-[#bfebd2]">
-          <p className="mb-2 text-xs font-extrabold text-[#6b7280]">提出内容の確認</p>
-          <div className="text-[13px] leading-loose">
+          <p className="mb-2 text-[13.5px] font-extrabold text-[#6b7280]">提出内容の確認</p>
+          <div className="text-[14px] leading-loose">
             <b>現場:</b> {repSiteName()}
             <br />
             <b>写真:</b> {phSummary}
@@ -257,7 +257,7 @@ export function ReportPage() {
       <div className="mt-3.5">
         <StatusBar message={repStatus.message} kind={repStatus.kind} />
       </div>
-      <p className="mt-4 text-center text-[11px] text-[#9aa4ad]">
+      <p className="mt-4 text-center text-[12.5px] text-[#9aa4ad]">
         提出後は監督が内容を確認します
       </p>
     </div>

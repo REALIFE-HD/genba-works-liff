@@ -89,7 +89,7 @@ export function PunchPage() {
           <div key={s.num} className="flex flex-1 items-center">
             <div className="flex w-[72px] shrink-0 flex-col items-center gap-1">
               <span
-                className={`flex h-[30px] w-[30px] items-center justify-center rounded-full text-xs font-extrabold ${
+                className={`flex h-[30px] w-[30px] items-center justify-center rounded-full text-[13.5px] font-extrabold ${
                   s.state === "done"
                     ? "bg-[#e7f8ef] text-[#0a8f4f]"
                     : s.state === "on"
@@ -100,7 +100,7 @@ export function PunchPage() {
                 {s.state === "done" ? "✓" : s.num}
               </span>
               <span
-                className={`text-[9.5px] font-extrabold whitespace-nowrap ${
+                className={`text-[11px] font-extrabold whitespace-nowrap ${
                   s.state ? "text-[#05a847]" : "text-[#aab2b9]"
                 }`}
               >
@@ -130,7 +130,7 @@ export function PunchPage() {
             {qr ? <Check className="h-6 w-6" /> : <MapPin className="h-6 w-6" />}
           </div>
           <div>
-            <p className="text-xs font-semibold text-[#6b7280]">現場</p>
+            <p className="text-[13.5px] font-semibold text-[#6b7280]">現場</p>
             <p
               className={`mt-0.5 leading-tight font-extrabold ${
                 qr ? "text-lg" : "text-[15px] text-[#6b7280]"
@@ -143,7 +143,7 @@ export function PunchPage() {
         {t.status === "in" && (
           <p className="mt-2 text-center text-[26px] font-extrabold tabular-nums text-[#05a847]">
             {Math.floor((t.elapsed_min ?? 0) / 60)}時間{(t.elapsed_min ?? 0) % 60}分
-            <small className="ml-1.5 text-xs font-bold text-[#6b7280]">
+            <small className="ml-1.5 text-[13.5px] font-bold text-[#6b7280]">
               在場中 ・ {fmtTime(t.first_in)} 入場
             </small>
           </p>
@@ -155,7 +155,7 @@ export function PunchPage() {
       </Card>
 
       {showRemind && (
-        <div className="mb-4 flex items-start gap-2 rounded-[14px] border border-[#f5d98a] bg-[#fff7e6] px-3.5 py-3 text-xs font-bold leading-snug text-[#b45309]">
+        <div className="mb-4 flex items-start gap-2 rounded-[14px] border border-[#f5d98a] bg-[#fff7e6] px-3.5 py-3 text-[13.5px] font-bold leading-snug text-[#b45309]">
           17時を過ぎています。退場打刻を忘れていませんか？
         </div>
       )}
@@ -184,27 +184,27 @@ export function PunchPage() {
               </span>
             </button>
           </div>
-          <p className="mt-2.5 text-center text-[11.5px] text-[#6b7280]">{hint}</p>
+          <p className="mt-2.5 text-center text-[13px] text-[#6b7280]">{hint}</p>
         </Card>
       ) : (
         <Card>
           <div className="flex items-center justify-center gap-3.5 py-1.5 tabular-nums">
             <div className="text-center">
               <div className="text-xl font-extrabold">{fmtTime(t.first_in)}</div>
-              <div className="text-[10px] font-bold text-[#6b7280]">入場</div>
+              <div className="text-[11.5px] font-bold text-[#6b7280]">入場</div>
             </div>
             <span className="text-[#cbd2d8]">→</span>
             <div className="text-center">
               <div className="text-xl font-extrabold">{fmtTime(t.last_out)}</div>
-              <div className="text-[10px] font-bold text-[#6b7280]">退場</div>
+              <div className="text-[11.5px] font-bold text-[#6b7280]">退場</div>
             </div>
             <span className="text-[#cbd2d8]">＝</span>
             <div className="text-center">
               <div className="text-xl font-extrabold">{stayHours}</div>
-              <div className="text-[10px] font-bold text-[#6b7280]">滞在</div>
+              <div className="text-[11.5px] font-bold text-[#6b7280]">滞在</div>
             </div>
           </div>
-          <p className="mt-2 text-center text-[11.5px] text-[#6b7280]">
+          <p className="mt-2 text-center text-[13px] text-[#6b7280]">
             おつかれさまでした。記録済みです。再入場する場合はQRを読み取り直してください
           </p>
           <PrimaryBtn className="mt-3 py-3.5 text-sm" onClick={() => setTab("report")}>
@@ -214,7 +214,7 @@ export function PunchPage() {
       )}
 
       <StatusBar message={punchStatus.message} kind={punchStatus.kind} />
-      <p className="mt-4 text-center text-[11px] text-[#9aa4ad]">
+      <p className="mt-4 text-center text-[12.5px] text-[#9aa4ad]">
         公式LINEミニアプリ ・ 打刻はSupabaseへ記録
       </p>
     </div>

@@ -23,28 +23,33 @@ function AppShell() {
     view,
     tab,
     setTab,
+    go,
     me,
     reportAlert,
     displayName,
     siteTab,
-    chatSiteId,
-    dmThreadOpen,
   } = useGenba();
   const chatAlert = (me?.unread ?? []).some((u) => (u.count || 0) > 0);
+  // 3タブ以外の画面（打刻・現場チャット・マイ・個人連絡）は戻るボタンで完結させる。
   const hideBottomNav =
     view === "punch" ||
-    (view === "site" && siteTab === "chat") ||
-    (view === "chat" && (!!chatSiteId || dmThreadOpen));
+    view === "my" ||
+    view === "chat" ||
+    (view === "site" && siteTab === "chat");
 
   return (
     <div
       className={
         hideBottomNav
           ? ""
-          : "pb-[calc(5rem+env(safe-area-inset-bottom))]"
+          : "pb-[calc(5.5rem+env(safe-area-inset-bottom))]"
       }
     >
-      <Header displayName={displayName} env={me?.env} />
+      <Header
+        displayName={displayName}
+        env={me?.env}
+        onProfile={() => go("my")}
+      />
       <main className="px-4 pt-4">
         {view === "home" && <HomePage />}
         {view === "punch" && <PunchPage />}

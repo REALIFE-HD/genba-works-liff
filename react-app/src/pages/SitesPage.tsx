@@ -41,7 +41,7 @@ export function SitesPage() {
     <div>
       <div className="mb-3 px-1">
         <h2 className="text-[17px] font-extrabold text-[#14181b]">現場</h2>
-        <p className="mt-0.5 text-[12px] font-semibold text-[#6b7280]">
+        <p className="mt-0.5 text-[13.5px] font-semibold text-[#6b7280]">
           予定・在場中の現場を確認
         </p>
       </div>
@@ -60,7 +60,7 @@ export function SitesPage() {
             key={key}
             type="button"
             onClick={() => setSiteFilter(key)}
-            className={`rounded-full px-4 py-2 text-[12.5px] font-bold ${
+            className={`rounded-full px-4 py-2 text-[14px] font-bold ${
               siteFilter === key
                 ? "bg-[#14181b] text-white"
                 : "bg-white text-[#6b7280] shadow-[inset_0_0_0_1px_#e6eaee]"
@@ -94,7 +94,7 @@ export function SitesPage() {
           if (!arr.length) return null;
           return (
             <div key={g}>
-              <h4 className="mb-2 mt-1.5 flex items-center px-1 text-xs font-extrabold text-[#6b7280]">
+              <h4 className="mb-2 mt-1.5 flex items-center px-1 text-[13.5px] font-extrabold text-[#6b7280]">
                 <span
                   className="mr-1.5 inline-block h-2 w-2 rounded-full"
                   style={{ background: GROUP_DOT[g] }}
@@ -105,7 +105,7 @@ export function SitesPage() {
                 <button
                   type="button"
                   onClick={() => setDoneOpen(true)}
-                  className="mb-2.5 w-full rounded-2xl border border-dashed border-[#e6eaee] bg-white py-3 text-center text-[13px] font-bold text-[#6b7280]"
+                  className="mb-2.5 w-full rounded-2xl border border-dashed border-[#e6eaee] bg-white py-3 text-center text-[14px] font-bold text-[#6b7280]"
                 >
                   {arr.length}件を見る
                 </button>
@@ -133,7 +133,7 @@ export function SitesPage() {
                           {s.name}
                           {badge && (
                             <span
-                              className={`ml-1.5 inline-block rounded-full px-2 py-0.5 align-[1.5px] text-[10px] font-extrabold whitespace-nowrap ${
+                              className={`ml-1.5 inline-block rounded-full px-2 py-0.5 align-[1.5px] text-[11.5px] font-extrabold whitespace-nowrap ${
                                 m.inNow
                                   ? "bg-[#e7f8ef] text-[#0a8f4f]"
                                   : "bg-[#fff7e6] text-[#b45309]"
@@ -144,7 +144,7 @@ export function SitesPage() {
                           )}
                         </span>
                         {sub.length > 0 && (
-                          <span className="mt-0.5 block truncate text-[11.5px] leading-snug text-[#6b7280]">
+                          <span className="mt-0.5 block truncate text-[13px] leading-snug text-[#6b7280]">
                             {sub.join(" · ")}
                           </span>
                         )}

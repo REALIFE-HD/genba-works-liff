@@ -50,7 +50,6 @@ type GenbaContextValue = {
   tab: TabKey;
   curSite: GenbaSite | null;
   siteTab: SiteTabKey;
-  dmThreadOpen: boolean;
   siteFilter: SiteFilter;
   siteQuery: string;
   doneOpen: boolean;
@@ -60,7 +59,6 @@ type GenbaContextValue = {
   regCompanies: string[];
   regBusy: boolean;
   regStatus: PunchStatus;
-  chatSiteId: string | null;
   reportAlert: boolean;
   unrep: string | null;
   photos: LocalPhoto[];
@@ -87,8 +85,6 @@ type GenbaContextValue = {
   scanQR: () => Promise<void>;
   punch: (type: "in" | "out") => Promise<void>;
   register: (company: string, trade: string, name: string) => Promise<void>;
-  setChatSiteId: (id: string | null) => void;
-  setDmThreadOpen: (open: boolean) => void;
   loadChat: (since?: string | null, siteId?: string | null) => Promise<{
     ok: boolean;
     messages: ChatMessage[];
@@ -106,13 +102,6 @@ type GenbaContextValue = {
   ) => Promise<{ ok: boolean; messages: DmMessage[]; mine?: string; other_name?: string | null; error?: string }>;
   sendDm: (otherWorkerId: string, body: string) => Promise<void>;
   toggleScheduleDay: (scheduleId: string, date: string, decline: boolean) => Promise<void>;
-  createSchedule: (
-    siteId: string,
-    start: string,
-    end: string,
-    trade: string,
-    headcount?: number,
-  ) => Promise<{ ok: boolean; error?: string }>;
   setPhotos: (p: LocalPhoto[]) => void;
   addPhotoFiles: (files: FileList | File[]) => Promise<void>;
   cyclePhotoType: (i: number) => void;
@@ -170,8 +159,6 @@ export function GenbaProvider({
   const [regCompanies, setRegCompanies] = useState<string[]>([]);
   const [regBusy, setRegBusy] = useState(false);
   const [regStatus, setRegStatus] = useState<PunchStatus>({ message: "", kind: "" });
-  const [chatSiteId, setChatSiteId] = useState<string | null>(null);
-  const [dmThreadOpen, setDmThreadOpen] = useState(false);
   const [photos, setPhotos] = useState<LocalPhoto[]>([]);
   const [repBody, setRepBody] = useState("");
   const [repConfirmOpen, setRepConfirmOpen] = useState(false);
@@ -261,8 +248,6 @@ export function GenbaProvider({
         home: "home",
         sites: "sites",
         report: "report",
-        chat: "chat",
-        me: "my",
       };
       setView(map[t]);
       if (t !== "sites") setCurSite(null);
@@ -275,8 +260,6 @@ export function GenbaProvider({
     if (v === "home") setTabState("home");
     if (v === "sites" || v === "site") setTabState("sites");
     if (v === "report") setTabState("report");
-    if (v === "chat") setTabState("chat");
-    if (v === "my") setTabState("me");
     if (v !== "site") setCurSite(null);
   }, []);
 
@@ -309,12 +292,23 @@ export function GenbaProvider({
     go("sites");
   }, [go]);
 
-  const openSiteChat = useCallback((siteId: string) => {
-    setChatSiteId(siteId);
-    setCurSite(null);
-    setView("chat");
-    setTabState("chat");
-  }, []);
+  // チャットは現場の中の「連絡」に統合。どの現場の話かを取り違えないよう、
+  // 未読からの遷移も必ず現場詳細を開いてから連絡タブを表示する。
+  const openSiteChat = useCallback(
+    (siteId: string) => {
+      const s = siteById(me, siteId);
+      if (!s) {
+        setView("sites");
+        setTabState("sites");
+        return;
+      }
+      setCurSite(s);
+      setSiteTab("chat");
+      setView("site");
+      setTabState("sites");
+    },
+    [me],
+  );
 
   const scanQR = useCallback(async () => {
     const scan = (liff as unknown as { scanCodeV2?: () => Promise<{ value: string }> })
@@ -479,7 +473,7 @@ export function GenbaProvider({
     async (since?: string | null, siteId?: string | null) => {
       const token = idToken ?? getLiffIdToken();
       const body: Record<string, unknown> = { mode: "list", id_token: token };
-      const sid = siteId !== undefined ? siteId : chatSiteId;
+      const sid = siteId ?? null;
       if (sid) body.site_id = sid;
       if (since) body.since = since;
       const j = await apiPost<{
@@ -501,19 +495,18 @@ export function GenbaProvider({
       }
       return j;
     },
-    [idToken, chatSiteId, me],
+    [idToken, me],
   );
 
   const sendChat = useCallback(
     async (body: string, siteId?: string | null) => {
       const token = idToken ?? getLiffIdToken();
       const sb: Record<string, unknown> = { mode: "send", id_token: token, body };
-      const sid = siteId !== undefined ? siteId : chatSiteId;
+      const sid = siteId ?? curSite?.id ?? null;
       if (sid) sb.site_id = sid;
-      else if (curSite) sb.site_id = curSite.id;
       await apiPost("/genba-chat", sb);
     },
-    [idToken, chatSiteId, curSite],
+    [idToken, curSite],
   );
 
   const loadDmWorkers = useCallback(async () => {
@@ -578,34 +571,6 @@ export function GenbaProvider({
         decline,
       });
       await loadSchedule(token);
-    },
-    [idToken, loadSchedule],
-  );
-
-  const createSchedule = useCallback(
-    async (
-      siteId: string,
-      start: string,
-      end: string,
-      trade: string,
-      headcount?: number,
-    ) => {
-      const token = idToken ?? getLiffIdToken();
-      const body: Record<string, unknown> = {
-        mode: "create",
-        id_token: token,
-        site_id: siteId,
-        trade,
-        start_date: start,
-        end_date: end,
-      };
-      if (headcount) body.headcount = headcount;
-      const j = await apiPost<{ ok: boolean; error?: string }>(
-        "/genba-schedule",
-        body,
-      );
-      if (j.ok) await loadSchedule(token);
-      return j;
     },
     [idToken, loadSchedule],
   );
@@ -823,7 +788,6 @@ export function GenbaProvider({
     tab,
     curSite,
     siteTab,
-    dmThreadOpen,
     siteFilter,
     siteQuery,
     doneOpen,
@@ -833,7 +797,6 @@ export function GenbaProvider({
     regCompanies,
     regBusy,
     regStatus,
-    chatSiteId,
     reportAlert,
     unrep,
     photos,
@@ -860,8 +823,6 @@ export function GenbaProvider({
     scanQR,
     punch,
     register,
-    setChatSiteId,
-    setDmThreadOpen,
     loadChat,
     sendChat,
     loadDmWorkers,
@@ -869,7 +830,6 @@ export function GenbaProvider({
     loadDmHistory,
     sendDm,
     toggleScheduleDay,
-    createSchedule,
     setPhotos,
     addPhotoFiles,
     cyclePhotoType,
