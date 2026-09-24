@@ -8,7 +8,7 @@ export function siteById(me: GenbaMeResponse | null, id: string): GenbaSite | nu
   return me?.sites?.find((s) => s.id === id) ?? null;
 }
 
-export function siteNextSched(
+function siteNextSched(
   schedCache: GenbaSchedule[] | null,
   siteId: string,
 ): { date: string } | null {

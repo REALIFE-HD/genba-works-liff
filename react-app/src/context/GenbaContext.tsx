@@ -10,10 +10,8 @@ import {
 } from "react";
 import { apiPost } from "../lib/api";
 import {
-  CHAT_QUICK_TEXTS,
   PHOTO_TYPE_COLORS,
   PHOTO_TYPE_LABELS,
-  TRADES,
   type PhotoType,
   type SiteFilter,
 } from "../lib/constants";
@@ -41,7 +39,6 @@ type PunchStatus = { message: string; kind: "" | "ok" | "err" | "busy" };
 
 type GenbaContextValue = {
   displayName: string;
-  idToken: string | null;
   me: GenbaMeResponse | null;
   schedCache: GenbaSchedule[] | null;
   meBoot: "loading" | "ready" | "error";
@@ -113,7 +110,6 @@ type GenbaContextValue = {
     trade: string,
     headcount?: number,
   ) => Promise<{ ok: boolean; error?: string }>;
-  setPhotos: (p: LocalPhoto[]) => void;
   addPhotoFiles: (files: FileList | File[]) => Promise<void>;
   cyclePhotoType: (i: number) => void;
   removePhoto: (i: number) => void;
@@ -127,8 +123,6 @@ type GenbaContextValue = {
   openReportForSite: (siteId: string) => void;
   photoCounts: () => Record<PhotoType, number>;
   repSiteName: () => string;
-  TRADES: readonly string[];
-  CHAT_QUICK_TEXTS: readonly string[];
   PHOTO_TYPE_LABELS: typeof PHOTO_TYPE_LABELS;
   PHOTO_TYPE_COLORS: typeof PHOTO_TYPE_COLORS;
 };
@@ -814,7 +808,6 @@ export function GenbaProvider({
 
   const value: GenbaContextValue = {
     displayName,
-    idToken,
     me,
     schedCache,
     meBoot,
@@ -870,7 +863,6 @@ export function GenbaProvider({
     sendDm,
     toggleScheduleDay,
     createSchedule,
-    setPhotos,
     addPhotoFiles,
     cyclePhotoType,
     removePhoto,
@@ -884,8 +876,6 @@ export function GenbaProvider({
     openReportForSite,
     photoCounts,
     repSiteName,
-    TRADES,
-    CHAT_QUICK_TEXTS,
     PHOTO_TYPE_LABELS,
     PHOTO_TYPE_COLORS,
   };

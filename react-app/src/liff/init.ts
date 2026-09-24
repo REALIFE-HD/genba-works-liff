@@ -9,7 +9,7 @@ export class LiffLoginRedirectError extends Error {
 }
 
 /** OAuth コールバック後に URL から code/state を除去（BMS liff-init 準拠） */
-export function stripLiffOAuthParams(): void {
+function stripLiffOAuthParams(): void {
   const url = new URL(window.location.href);
   const keys = [
     "code",
