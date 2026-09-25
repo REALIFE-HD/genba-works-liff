@@ -2,7 +2,7 @@ import type { PhotoType } from "./constants";
 
 export type LocalPhoto = { data: string; type: PhotoType };
 
-export function resizeImage(file: File): Promise<string> {
+function resizeImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const rd = new FileReader();

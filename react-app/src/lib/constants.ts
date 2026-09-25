@@ -20,7 +20,7 @@ export const TRADES = [
   "その他",
 ] as const;
 
-export const PHOTO_TYPES = ["during", "before", "after"] as const;
+const PHOTO_TYPES = ["during", "before", "after"] as const;
 export type PhotoType = (typeof PHOTO_TYPES)[number];
 
 export const PHOTO_TYPE_LABELS: Record<PhotoType, string> = {

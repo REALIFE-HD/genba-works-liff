@@ -10,7 +10,7 @@ export function jstToday(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
 }
 
-export function weekday(ymd: string): string {
+function weekday(ymd: string): string {
   return "日月火水木金土"[new Date(`${ymd}T00:00:00+09:00`).getDay()];
 }
 

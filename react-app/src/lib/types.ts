@@ -7,7 +7,7 @@ export type GenbaSite = {
   status?: string | null;
 };
 
-export type GenbaToday = {
+type GenbaToday = {
   status?: "in" | "out" | null;
   site_id?: string | null;
   first_in?: string | null;
@@ -15,7 +15,7 @@ export type GenbaToday = {
   elapsed_min?: number | null;
 };
 
-export type GenbaHistoryRow = {
+type GenbaHistoryRow = {
   date: string;
   site_id?: string | null;
   first_in?: string | null;
@@ -30,7 +30,7 @@ export type GenbaReport = {
   photos?: { url: string; type: PhotoType }[];
 };
 
-export type GenbaScheduleDay = {
+type GenbaScheduleDay = {
   date: string;
   status?: string | null;
 };
@@ -92,8 +92,6 @@ export type DmMessage = {
   body: string;
   created_at: string;
 };
-
-export type ReportPhoto = { data: string; type: PhotoType };
 
 export type ViewKey = "home" | "punch" | "sites" | "site" | "report" | "chat" | "my";
 
